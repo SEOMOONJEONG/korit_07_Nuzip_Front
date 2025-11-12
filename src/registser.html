@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nuzip 회원가입 테스트</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+    fieldset { border: 1px solid #ddd; padding: 16px; }
+    label { display: block; margin: 6px 0; }
+    .row { display: grid; grid-template-columns: 140px 1fr; gap: 8px; align-items: center; margin: 8px 0; }
+    button { padding: 10px 16px; cursor: pointer; }
+    pre { background: #f7f7f7; padding: 12px; overflow: auto; }
+    .error { color: #c00; font-weight: 600; }
+    .ok { color: #0a7; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>회원가입 테스트</h1>
+
+  <form id="registerForm">
+    <div class="row">
+      <label for="userId">아이디</label>
+      <input id="userId" name="userId" maxlength="50" required />
+    </div>
+    <div class="row">
+      <label for="password">비밀번호</label>
+      <input id="password" name="password" type="password" required />
+    </div>
+    <div class="row">
+      <label for="username">이름</label>
+      <input id="username" name="username" maxlength="50" required />
+    </div>
+
+    <fieldset>
+      <legend>카테고리(최대 3개)</legend>
+      <label><input type="checkbox" name="newsCategory" value="POLITICS" /> 정치</label>
+      <label><input type="checkbox" name="newsCategory" value="ECONOMY" /> 경제</label>
+      <label><input type="checkbox" name="newsCategory" value="SOCIETY" /> 사회</label>
+      <label><input type="checkbox" name="newsCategory" value="LIFE_CULTURE" /> 생활/문화</label>
+      <label><input type="checkbox" name="newsCategory" value="IT_SCIENCE" /> IT/과학</label>
+      <label><input type="checkbox" name="newsCategory" value="WORLD" /> 세계</label>
+      <label><input type="checkbox" name="newsCategory" value="ENTERTAINMENT" /> 엔터</label>
+      <label><input type="checkbox" name="newsCategory" value="SPORTS" /> 스포츠</label>
+      <div class="error" id="catError" style="display:none;">카테고리는 최대 3개를 선택하세요.</div>
+    </fieldset>
+
+    <div class="row">
+      <label for="birthDate">생년월일</label>
+      <input id="birthDate" name="birthDate" type="date" />
+    </div>
+    <div class="row">
+      <label for="phone">핸드폰번호</label>
+      <input id="phone" name="phone" inputmode="numeric" pattern="^$ | ^\d{11}$" placeholder="01011112222" />
+    </div>
+
+    <div style="margin-top:12px;">
+      <button type="submit">회원가입</button>
+    </div>
+  </form>
+
+  <h3>결과</h3>
+  <div id="status"></div>
+  <pre id="output"></pre>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const statusDiv = document.getElementById('status');
+    const output = document.getElementById('output');
+    const catError = document.getElementById('catError');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const categories = Array.from(document.querySelectorAll('input[name="newsCategory"]:checked'))
+        .map(cb => cb.value);
+
+      if (categories.length > 4) {
+        catError.style.display = 'block';
+        return;
+      } else {
+        catError.style.display = 'none';
+      }
+
+      const payload = {
+        userId: document.getElementById('userId').value.trim(),
+        password: document.getElementById('password').value,
+        username: document.getElementById('username').value.trim(),
+        newsCategory: categories,
+        birthDate: document.getElementById('birthDate').value || null,
+        phone: document.getElementById('phone').value.trim() || null
+      };
+
+      statusDiv.textContent = '요청 중...';
+      output.textContent = '';
+
+      try {
+        const res = await fetch('http://localhost:8080/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // CORS에서 allowCredentials(true) 설정과 매치
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        try { data = JSON.parse(text); } catch { data = text; }
+
+        if (res.ok) {
+          statusDiv.innerHTML = '<span class="ok">✅ 회원가입 성공</span>';
+        } else {
+          statusDiv.innerHTML = '<span class="error">❌ 실패 (' + res.status + ')</span>';
+        }
+        output.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        statusDiv.innerHTML = '<span class="error">❌ 네트워크 오류</span>';
+        output.textContent = String(err);
+      }
+    });
+  </script>
+</body>
+</html>
