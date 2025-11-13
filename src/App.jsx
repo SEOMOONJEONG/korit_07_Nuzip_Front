@@ -8,10 +8,10 @@ import { getMe, doLogout } from './api/nuzipclientapi';
 
 import Landing from './pages/landing';
 import LoginHome from './pages/loginhome';
-import NuzipLogin from './pages/nuziplogin';
+import NuzipLogin from './pages/login';
 import LocalRegister from './pages/localregister';
 import LocalRegisterCategories from './pages/localregistercategories';
-import NuzipRegister from './pages/nuzipregister';
+import NuzipRegister from './pages/oauth2registercategories';
 import OAuth2Success from './pages/oauth2success';
 import RegisterChoice from './pages/registerchoice';
 

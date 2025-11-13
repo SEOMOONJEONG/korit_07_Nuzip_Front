@@ -4,13 +4,15 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function OAuth2Success() {
+  // 초기화
   const nav = useNavigate();
   const { hash, search } = useLocation();
 
+  // 토큰 추출 로직 실행
   useEffect(() => {
     let token = null;
 
-    // 1) 해시(#token=...) 우선
+    // 1) 해시(#token=...) 우선 _ 토큰 추출
     if (hash?.startsWith("#token=")) {
       const encoded = hash.substring("#token=".length);
       let decoded = decodeURIComponent(encoded); // "Bearer ey..."
@@ -20,7 +22,7 @@ export default function OAuth2Success() {
       token = decoded;
     }
 
-    // 2) 없으면 쿼리(?token=...) 시도
+    // 2) 없으면 쿼리(?token=...) 시도 해시에 토큰 없을경우 쿼리에서도 추출
     if (!token && search) {
       const p = new URLSearchParams(search);
       const t = p.get("token");
@@ -33,24 +35,27 @@ export default function OAuth2Success() {
       }
     }
 
-    // 실패 처리
+    // 실패 처리  
+    // 토큰이 없을때 로그인 화면으로 리다이렉트
     if (!token) {
       nav("/login?error=missing_token", { replace: true });
       return;
     }
-
+    
+    // 토큰이 있으면 세션에 저장하고 사용자 정보 확인
     (async () => {
       const raw = token.startsWith("Bearer ") ? token.slice(7) : token;
       if (!raw) {
         nav("/login?error=invalid_token", { replace: true });
         return;
       }
-
       sessionStorage.setItem("jwt", raw);
 
       let nextPath = "/home";
       const pendingAfterLogin = sessionStorage.getItem("googleAfterLoginPath");
 
+      // /api/auth/me 호출해서 사용자 정보 확인
+      // JWT 토큰 전송하여 유효한 사용자 정보인지 확인
       try {
         const meRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me`, {
           headers: {
@@ -59,13 +64,15 @@ export default function OAuth2Success() {
           },
         });
 
-        if (meRes.ok) {
+        // 응답 결과에 따라 이동 경로 결정
+        if (meRes.ok) { // user구분 (OAUTH_GOOGLE)
           const me = await meRes.json();
           sessionStorage.setItem("username", me.username || "");
           if (me.provider) {
             sessionStorage.setItem("provider", me.provider);
           }
 
+          // 카테고리 미선택 된 유저일 경우 카테고리 선택 화면으로 이동
           if (me.needsCategorySelection) {
             nextPath = "/oauth2/register/categories";
           } else if (pendingAfterLogin) {

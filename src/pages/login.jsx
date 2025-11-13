@@ -101,15 +101,15 @@ export default function NuzipLogin({ afterLogin }) {
       }}
     >
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>
-        이메일로 로그인
+        로그인
       </h1>
       <p style={{ color: "#666", marginBottom: 20, fontSize: 14 }}>
-        구글 계정 없이도 이메일로 로그인할 수 있습니다.
+        구글 계정 없이도 로그인할 수 있습니다.
       </p>
 
       <form onSubmit={onSubmit}>
         <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>
-          아이디 (userId)
+          아이디
         </label>
         <input
           name="userId"
@@ -195,7 +195,20 @@ export default function NuzipLogin({ afterLogin }) {
           cursor: "pointer",
         }}
       >
-        구글 계정으로 시작하기
+        <img
+          src="https://developers.google.com/identity/images/g-logo.png"
+          alt="Google"
+          style={{
+            width: 18,
+            height: 18,
+            verticalAlign: "middle",
+            marginRight: 8,
+            backgroundColor: "#fff",
+            borderRadius: "50%",
+            padding: 2,
+          }}
+        />
+        구글 계정으로 로그인하기
       </button>
 
       <p style={{ marginTop: 14, fontSize: 13, color: "#666", textAlign: "center" }}>
