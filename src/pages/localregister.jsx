@@ -1,7 +1,7 @@
 // 폼 회원가입 1단계
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { goGoogleLogin } from "../api/nuzipclientapi";
+import { api, goGoogleLogin } from "../api/nuzipclientapi";
 
 export default function LocalRegister() {
   const nav = useNavigate();
@@ -56,12 +56,24 @@ export default function LocalRegister() {
     }
   }, []);
 
-  const goNext = (e) => {
+  const goNext = async (e) => {
     e.preventDefault();
     setErr("");
     // 필수값 체크(프론트)
     if (!form.userId || !form.password || !form.username) {
       setErr("아이디/비밀번호/이름은 필수입니다.");
+      return;
+    }
+
+    try {
+      await api.get("/api/auth/register/check", {
+        params: { userId: form.userId },
+      });
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        "이미 회원가입 된 아이디 입니다.";
+      setErr(msg);
       return;
     }
 
