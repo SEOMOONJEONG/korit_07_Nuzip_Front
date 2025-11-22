@@ -109,13 +109,13 @@ export default function NuzipLogin({ afterLogin }) {
 
       <form onSubmit={onSubmit}>
         <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>
-          아이디
+          이메일 아이디
         </label>
         <input
           name="userId"
           value={form.userId}
           onChange={onChange}
-          placeholder="아이디"
+          placeholder="이메일형식"
           required
           style={{
             width: "100%",

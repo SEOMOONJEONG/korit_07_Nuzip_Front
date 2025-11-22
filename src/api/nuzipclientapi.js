@@ -53,6 +53,16 @@ export async function register(userData) {
   return api.post('/api/auth/register', userData);
 }
 
+// ✅ 이메일 인증 메일 발송
+export async function sendEmailVerification(email) {
+  return api.post('/api/auth/email/verification/send', { email });
+}
+
+// ✅ 이메일 인증 코드 확인
+export async function confirmEmailVerification({ email, code }) {
+  return api.post('/api/auth/email/verification/confirm', { email, code });
+}
+
 // ✅ 구글 로그인 (OAuth2 서버 처리)
 // 백엔드가 idToken을 받아 JWT를 반환한다고 가정
 export async function authenticateWithGoogleToken(idToken) {
@@ -83,4 +93,9 @@ export async function saveMyCategories(categories) {
   // categories: ["POLITICS","IT_SCIENCE","WORLD"]
   const res = await api.post('/api/users/me/categories', { categories });
   return res.data;
+}
+
+export function isValidEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
 }

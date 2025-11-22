@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
 /**
@@ -13,11 +14,23 @@ import PropTypes from "prop-types";
  */
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
-const ALL_CATEGORIES = ["POLITICS","ECONOMY","SOCIETY","LIFE_CULTURE","IT_SCIENCE","WORLD","ENTERTAINMENT","SPORTS"];
+// 서버 enum 키 + 한글 라벨 매핑
+const CATEGORY_OPTIONS = [
+  { key: "POLITICS", label: "정치" },
+  { key: "ECONOMY", label: "경제" },
+  { key: "SOCIETY", label: "사회" },
+  { key: "LIFE_CULTURE", label: "생활/문화" },
+  { key: "IT_SCIENCE", label: "IT/과학" },
+  { key: "WORLD", label: "세계" },
+  { key: "ENTERTAINMENT", label: "엔터" },
+  { key: "SPORTS", label: "스포츠" },
+];
 
 export default function ProfileEditPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError]   = useState("");
   const [okMsg, setOkMsg]   = useState("");
 
@@ -171,6 +184,36 @@ export default function ProfileEditPage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("정말로 회원 탈퇴를 진행할까요? 이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+    setError("");
+    setOkMsg("");
+    try {
+      setDeleting(true);
+      const res = await fetch(`${API_BASE}/api/users/me`, {
+        method: "DELETE",
+        headers: authHeaders(true),
+      });
+      if (!res.ok) {
+        const t = await safeJson(res);
+        throw new Error(t?.message || "회원 탈퇴에 실패했습니다.");
+      }
+
+      sessionStorage.removeItem("jwt");
+      sessionStorage.removeItem("reverifyToken");
+      sessionStorage.removeItem("reverifyExpiresAt");
+      alert("회원 탈퇴가 완료되었습니다.");
+      navigate("/landing", { replace: true });
+      window.location.reload();
+    } catch (e2) {
+      setError(e2.message || String(e2));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) return <div style={{padding:16}}>로딩 중…</div>;
 
   return (
@@ -217,12 +260,12 @@ export default function ProfileEditPage() {
         <div style={{marginBottom:12}}>
           <label style={{display:"block", fontWeight:600, marginBottom:6}}>카테고리 (정확히 3개)</label>
           <div style={{display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8}}>
-            {ALL_CATEGORIES.map(c => {
-              const selected = categories.includes(c);
+            {CATEGORY_OPTIONS.map(({ key, label }) => {
+              const selected = categories.includes(key);
               return (
-                <button type="button" key={c} onClick={()=>toggleCategory(c)}
+                <button type="button" key={key} onClick={()=>toggleCategory(key)}
                   style={{padding:10, borderRadius:20, border:"1px solid #aaa", background:selected?"#e6f0ff":"#fff"}}>
-                  {c}
+                  {label}
                 </button>
               );
             })}
@@ -255,6 +298,20 @@ export default function ProfileEditPage() {
           <button type="submit" disabled={saving}
             style={{padding:"10px 16px", borderRadius:8, border:"1px solid #333", background:"#111", color:"#fff"}}>
             {saving ? "저장 중..." : "저장"}
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+            style={{
+              padding: "10px 16px",
+              borderRadius: 8,
+              border: "1px solid #b91c1c",
+              background: deleting ? "#fecaca" : "#fee2e2",
+              color: "#b91c1c",
+            }}
+          >
+            {deleting ? "탈퇴 중..." : "회원 탈퇴"}
           </button>
         </div>
       </form>

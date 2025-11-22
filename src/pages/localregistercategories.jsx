@@ -35,7 +35,9 @@ export default function LocalRegisterCategories({ onComplete }) {
   })();
 
   useEffect(() => {
-    if (!draft) nav("/register", { replace: true });
+    if (!draft || !draft.emailVerified) {
+      nav("/register", { replace: true });
+    }
   }, [draft, nav]);
 
   const canSubmit = useMemo(() => selected.length === 3, [selected]); // ✅ 정확히 3
@@ -52,6 +54,14 @@ export default function LocalRegisterCategories({ onComplete }) {
 
   const finish = async () => {
     if (!draft || !canSubmit) return;
+    if (!draft.emailVerified) {
+      setErr("이메일 인증을 먼저 완료해 주세요.");
+      return;
+    }
+    if ((draft.userId || "").toLowerCase().endsWith("@gmail.com")) {
+      setErr("Gmail 계정은 구글 로그인을 이용해 주세요.");
+      return;
+    }
     setErr("");
     setLoading(true);
     try {
