@@ -256,7 +256,7 @@ export default function LocalRegister() {
               type="button"
               onClick={confirmVerification}
               disabled={
-                checkingCode || verificationCode.length !== 6 || !form.userId || isGmail
+                checkingCode || verificationCode.length !== 6 || !form.userId || isGmail 
               }
               style={{
                 padding: "10px 12px",

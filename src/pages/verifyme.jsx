@@ -34,13 +34,19 @@ export default function VerifyMePage() {
     })();
   }, [rawToken]);
 
-  // 2) provider 값을 "읽어" 사용: LOCAL이 아니면 바로 edit로 이동
-  useEffect(() => {
-    if (!loading && provider !== "LOCAL") {
-      sessionStorage.setItem("googleAfterLoginPath", "/profile/edit");
-      goGoogleLogin({ purpose: "profile-edit", redirectPath: "/profile/edit" });
-    }
-  }, [loading, provider]);
+// 2) provider 값을 "읽어" 사용: LOCAL이 아니면 바로 edit로 이동
+useEffect(() => {
+  if (!loading && provider !== "LOCAL") {
+    sessionStorage.setItem("oauthAfterLoginPath", "/profile/edit");
+
+    // 네이버 제거 → 오직 구글만 사용
+    goGoogleLogin({
+      purpose: "profile-edit",
+      redirectPath: "/profile/edit",
+      forceReauth: true,
+    });
+  }
+}, [loading, provider]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +105,7 @@ export default function VerifyMePage() {
         </form>
       ) : (
         // LOCAL이 아니면 useEffect에서 자동 이동 중
-        <p style={{color:"#666"}}>구글 계정은 비밀번호 확인 없이 수정 화면으로 이동합니다…</p>
+        <p style={{color:"#666"}}>소셜 계정은 비밀번호 확인 없이 수정 화면으로 이동합니다…</p>
       )}
     </main>
   );

@@ -102,7 +102,7 @@ export default function App() {
                 })}
                 title="내 정보 수정"
               >
-                {me.userId} 님
+                {(me?.username || me?.userId || "회원")} 님
               </NavLink>
 
               <button onClick={handleLogout}>로그아웃</button>

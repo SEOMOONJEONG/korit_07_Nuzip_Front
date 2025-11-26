@@ -10,6 +10,19 @@ export default function OAuth2Success() {
 
   // 토큰 추출 로직 실행
   useEffect(() => {
+    // 에러 쿼리 파라미터 확인
+    if (search) {
+      const params = new URLSearchParams(search);
+      const error = params.get("error");
+      const message = params.get("message");
+      if (error) {
+        console.error("OAuth 인증 오류:", error, message);
+        alert(message || "OAuth 인증 중 오류가 발생했습니다.");
+        nav("/login?error=oauth_failed", { replace: true });
+        return;
+      }
+    }
+
     let token = null;
 
     // 1) 해시(#token=...) 우선 _ 토큰 추출
@@ -52,7 +65,7 @@ export default function OAuth2Success() {
       sessionStorage.setItem("jwt", raw);
 
       let nextPath = "/home";
-      const pendingAfterLogin = sessionStorage.getItem("googleAfterLoginPath");
+      const pendingAfterLogin = sessionStorage.getItem("oauthAfterLoginPath");
 
       // /api/auth/me 호출해서 사용자 정보 확인
       // JWT 토큰 전송하여 유효한 사용자 정보인지 확인
@@ -85,7 +98,7 @@ export default function OAuth2Success() {
         console.warn("Failed to load /api/auth/me after google login:", err);
       } finally {
         if (pendingAfterLogin) {
-          sessionStorage.removeItem("googleAfterLoginPath");
+          sessionStorage.removeItem("oauthAfterLoginPath");
         }
         nav(nextPath, { replace: true });
       }

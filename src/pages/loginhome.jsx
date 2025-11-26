@@ -6,9 +6,9 @@ export default function LoginHome({ me }) {
     <div style={{ padding: 40 }}>
       <h2>메인 페이지</h2>
       <p>로그인에 성공했습니다! 👋</p>
-      {me?.userId && (
+      {(me?.username || me?.userId) && (
         <p style={{ marginTop: 12, fontSize: 18, fontWeight: 600 }}>
-          {me.userId} 님 반갑습니다.
+          {(me?.username || me?.userId)} 님 반갑습니다.
         </p>
       )}
     </div>

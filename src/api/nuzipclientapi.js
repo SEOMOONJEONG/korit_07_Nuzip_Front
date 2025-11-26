@@ -84,6 +84,7 @@ export const goGoogleLogin = (options = {}) => {
   const params = new URLSearchParams();
   if (options.purpose) params.set('purpose', options.purpose);
   if (options.redirectPath) params.set('redirect', options.redirectPath);
+  if (options.forceReauth) params.set('forceReauth', '1');
   const suffix = params.toString() ? `?${params.toString()}` : '';
   window.location.href = `${API_BASE}/oauth2/authorization/google${suffix}`;
 };

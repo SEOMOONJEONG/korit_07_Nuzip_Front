@@ -10,8 +10,7 @@ export default function Header() {
   // 클릭 시 회원정보 수정 페이지 이동
   const handleUserClick = () => {
     if (!token) {
-      alert("로그인이 필요합니다.");
-      navigate("/nuziplogin"); // 로그인 페이지로
+      navigate("/login"); // 로그인 페이지
     } else {
       navigate("/profile/edit"); // 회원정보 수정 페이지로 이동
     }
@@ -54,7 +53,7 @@ export default function Header() {
         ) : (
           // 비로그인 상태: 로그인 버튼
           <button
-            onClick={() => navigate("/nuziplogin")}
+            onClick={() => navigate("/login")}
             style={{
               padding: "6px 12px",
               background: "#fff",

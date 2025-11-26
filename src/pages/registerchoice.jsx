@@ -53,6 +53,7 @@ export default function RegisterChoice() {
           fontWeight: 600,
           fontSize: 15,
           cursor: "pointer",
+          marginBottom: 12,
         }}
       >
         <img
