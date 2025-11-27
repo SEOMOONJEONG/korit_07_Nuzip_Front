@@ -61,7 +61,7 @@ export default function NuzipLogin({ afterLogin }) {
       }
 
       if (needsCategorySelection) {
-        // ★ 네이버 제거: 오직 구글 소셜만 체크
+        // 네이버 제거
         const isSocial = providerType === "OAUTH_GOOGLE";
 
         const target = isSocial
@@ -100,13 +100,14 @@ export default function NuzipLogin({ afterLogin }) {
       style={{
         maxWidth: 420,
         margin: "80px auto",
-        padding: "0 24px 60px",
+        padding: "50px 24px 15px 24px",
         textAlign: "center",
+        border: "1px solid #e5e7eb",
       }}
     >
       <div style={{ fontSize: 32, fontWeight: 800, marginBottom: 12 }}>Nuzip</div>
       <p style={{ color: "#666", marginBottom: 32 }}>
-        이메일과 비밀번호로 로그인하거나,<br />다른 계정으로 간편하게 시작하세요.
+        이메일과 비밀번호로 로그인하거나,<br />구글 계정으로 간편하게 시작하세요.
       </p>
 
       <form
@@ -115,26 +116,28 @@ export default function NuzipLogin({ afterLogin }) {
           background: "#fff",
           borderRadius: 16,
           padding: 24,
-          boxShadow: "0 10px 35px rgba(0,0,0,0.08)",
           textAlign: "left",
+          width: "100%",            
+          boxSizing: "border-box",  
         }}
       >
         <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>
-          이메일 아이디
+          이메일(아이디)
         </label>
         <input
           name="userId"
           value={form.userId}
           onChange={onChange}
-          placeholder="이메일 주소를 입력하세요"
+          placeholder="이메일"
           required
           style={{
             width: "100%",
+            boxSizing: "border-box",
             padding: "12px 14px",
             border: "1px solid #ddd",
             borderRadius: 10,
             marginBottom: 14,
-            background: "#fafafa",
+            background: "#fff",
             fontSize: 14,
           }}
         />
@@ -147,15 +150,16 @@ export default function NuzipLogin({ afterLogin }) {
           name="password"
           value={form.password}
           onChange={onChange}
-          placeholder="비밀번호를 입력하세요"
+          placeholder="비밀번호"
           required
           style={{
             width: "100%",
+            boxSizing: "border-box",
             padding: "12px 14px",
             border: "1px solid #ddd",
             borderRadius: 10,
             marginBottom: 18,
-            background: "#fafafa",
+            background: "#fff",
             fontSize: 14,
           }}
         />
@@ -165,6 +169,7 @@ export default function NuzipLogin({ afterLogin }) {
           disabled={loading}
           style={{
             width: "100%",
+            boxSizing: "border-box",
             padding: "14px 16px",
             borderRadius: 12,
             background: loading ? "#ddd" : "#000000ff",
@@ -172,6 +177,7 @@ export default function NuzipLogin({ afterLogin }) {
             border: "none",
             fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",
+            marginTop: 8,
           }}
         >
           {loading ? "로그인 중..." : "Nuzip 로그인"}
@@ -190,11 +196,14 @@ export default function NuzipLogin({ afterLogin }) {
             color: "#666",
           }}
         >
+          
           <span>
-            회원가입{" "}
-            <Link to="/register-choice" style={{ color: "#222" }}>
-              바로가기
-            </Link>
+            회원가입{" "}<span
+          onClick={() => nav("/register-choice")}
+          style={{ color: "#2563eb", cursor: "pointer" }}
+        >
+          바로가기
+        </span>
           </span>
         </div>
       </form>
@@ -224,11 +233,7 @@ export default function NuzipLogin({ afterLogin }) {
         </button>
       </div>
 
-      <p style={{ marginTop: 28, fontSize: 12, color: "#777" }}>
-        소셜 계정으로 로그인하면 최초 1회 관심 카테고리를 선택하게 됩니다.
-      </p>
-
-      <p style={{ marginTop: 8, fontSize: 12, color: "#aaa" }}>
+      <p style={{ marginTop: 50, fontSize: 12, color: "#aaa" }}>
         문제 발생 시{" "}
         <Link to="/" style={{ color: "#2563eb" }}>
           메인

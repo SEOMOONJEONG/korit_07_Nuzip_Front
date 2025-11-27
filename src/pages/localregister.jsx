@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   api,
-  goGoogleLogin,
   isValidEmail,
   sendEmailVerification,
   confirmEmailVerification,
@@ -29,6 +28,8 @@ export default function LocalRegister() {
   const [verificationError, setVerificationError] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [checkingCode, setCheckingCode] = useState(false);
+
+  // signupDraft에 일부 값 저장하는 헬퍼
   const persistDraft = (partial) => {
     const raw = sessionStorage.getItem("signupDraft");
     let base = {};
@@ -53,6 +54,7 @@ export default function LocalRegister() {
     const nextValue = name === "userId" ? value.trim().toLowerCase() : value;
     setForm((f) => ({ ...f, [name]: nextValue }));
     if (name === "userId") {
+      // 이메일이 바뀌면 인증 상태 초기화
       setEmailVerified(false);
       setVerificationCode("");
       setVerificationNotice("");
@@ -69,29 +71,20 @@ export default function LocalRegister() {
     }));
   };
 
+  // 🔹 1단계 진입 시: 항상 새 플로우 시작 (이메일 포함 모든 값 초기화)
   useEffect(() => {
-    const raw = sessionStorage.getItem("signupDraft");
-    if (!raw) return;
-    try {
-      const draft = JSON.parse(raw);
-      setForm({
-        userId: draft.userId || "",
-        password: draft.password || "",
-        username: draft.username || "",
-        birthDate: draft.birthDate || "",
-      });
-      setEmailVerified(Boolean(draft.emailVerified));
-      if (draft.phone) {
-        const digits = String(draft.phone).replace(/\D/g, "");
-        setPhoneParts({
-          first: digits.slice(0, 3),
-          second: digits.slice(3, 7),
-          third: digits.slice(7, 11),
-        });
+    // 이전 가입 도중 남아있던 데이터 제거 → 새 1단계 시작
+    sessionStorage.removeItem("signupDraft");
+    sessionStorage.setItem("registerFlow", "step1");
+
+    return () => {
+      const status = sessionStorage.getItem("registerFlow");
+      // 여전히 step1이면 → 2단계로 이동하지 않고 나간 것 → 플로우 초기화
+      if (status === "step1") {
+        sessionStorage.removeItem("signupDraft");
+        sessionStorage.removeItem("registerFlow");
       }
-    } catch (e) {
-      console.warn("회원가입 임시 데이터 로드 실패:", e);
-    }
+    };
   }, []);
 
   const isGmail = (form.userId || "").toLowerCase().endsWith("@gmail.com");
@@ -139,7 +132,12 @@ export default function LocalRegister() {
       setEmailVerified(true);
       setVerificationNotice("이메일 인증이 완료되었습니다.");
       setErr("");
-      persistDraft({ userId: form.userId, emailVerified: true });
+
+      // 이메일 + 인증 완료 상태를 초안에 저장 (2단계에서 사용)
+      persistDraft({
+        userId: form.userId,
+        emailVerified: true,
+      });
     } catch (error) {
       const msg =
         error?.response?.data?.message ||
@@ -154,16 +152,17 @@ export default function LocalRegister() {
   const goNext = async (e) => {
     e.preventDefault();
     setErr("");
-    // 필수값 체크(프론트)
+
+    // 필수값 체크
     if (!form.userId || !form.password || !form.username) {
       setErr("이메일/비밀번호/이름은 필수입니다.");
       return;
     }
-    
+
     // 이메일 형식 체크
     if (!isValidEmail(form.userId)) {
       setErr("아이디는 이메일 형식이어야 합니다.");
-      return; // ❗ 형식 틀리면 여기서 끝 → 다음 단계 이동 X
+      return;
     }
 
     if (isGmail) {
@@ -176,8 +175,8 @@ export default function LocalRegister() {
       return;
     }
 
+    // 중복 아이디(이메일) 체크
     try {
-      // 중복 아이디(이메일) 체크
       await api.get("/api/auth/register/check", {
         params: { userId: form.userId },
       });
@@ -199,24 +198,47 @@ export default function LocalRegister() {
       phone: combinedPhone,
       emailVerified: true,
     };
-    // 1단계 임시 저장
+
+    // 1단계 전체 데이터 임시 저장 (2단계에서 사용)
     sessionStorage.setItem("signupDraft", JSON.stringify(draftPayload));
-    // 2단계(카테고리)로 이동
+
+    // 이제 2단계로 이동한다는 표시
+    sessionStorage.setItem("registerFlow", "step2");
+
+    // 2단계(카테고리 선택) 페이지로 이동
     nav("/register/categories");
   };
 
   return (
-    <main style={{ maxWidth: 420, margin: "60px auto", padding: 24, border: "1px solid #eee", borderRadius: 12 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>이메일 회원가입 (1/2)</h1>
+    <main
+      style={{
+        maxWidth: 420,
+        margin: "60px auto",
+        padding: 24,
+        border: "1px solid #eee",
+        borderRadius: 12,
+      }}
+    >
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>회원가입</h1>
       <form onSubmit={goNext}>
         <Label>이메일 (아이디)</Label>
-        <Input 
-        type="email" 
-        name="userId" 
-        value={form.userId} 
-        onChange={onChange} 
-        required />
-        <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <Input
+          type="email"
+          name="userId"
+          value={form.userId}
+          onChange={onChange}
+          required
+          disabled={emailVerified} // 인증 완료 시 수정 불가
+        />
+
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            boxSizing: "border-box",
+            marginBottom: 12,
+          }}
+        >
           <button
             type="button"
             onClick={sendVerification}
@@ -240,9 +262,11 @@ export default function LocalRegister() {
             {emailVerified ? "인증 완료" : sendingEmail ? "발송 중..." : "인증 메일 보내기"}
           </button>
         </div>
+
         {!emailVerified && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <Input
+          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            {/* 이 칸은 공통 Input 말고 개별 스타일 */}
+            <input
               type="text"
               inputMode="numeric"
               maxLength={6}
@@ -251,12 +275,19 @@ export default function LocalRegister() {
               onChange={(e) =>
                 setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                boxSizing: "border-box",
+              }}
             />
             <button
               type="button"
               onClick={confirmVerification}
               disabled={
-                checkingCode || verificationCode.length !== 6 || !form.userId || isGmail 
+                checkingCode || verificationCode.length !== 6 || !form.userId || isGmail
               }
               style={{
                 padding: "10px 12px",
@@ -271,11 +302,16 @@ export default function LocalRegister() {
             </button>
           </div>
         )}
+
         {verificationNotice && (
-          <p style={{ color: "#15803d", fontSize: 12, marginBottom: 8 }}>{verificationNotice}</p>
+          <p style={{ color: "#15803d", fontSize: 12, marginBottom: 8 }}>
+            {verificationNotice}
+          </p>
         )}
         {verificationError && (
-          <p style={{ color: "#dc2626", fontSize: 12, marginBottom: 8 }}>{verificationError}</p>
+          <p style={{ color: "#dc2626", fontSize: 12, marginBottom: 8 }}>
+            {verificationError}
+          </p>
         )}
         {isGmail && (
           <p style={{ color: "#b45309", fontSize: 12, marginBottom: 8 }}>
@@ -284,43 +320,56 @@ export default function LocalRegister() {
         )}
 
         <Label>비밀번호</Label>
-        <Input type="password" name="password" value={form.password} onChange={onChange} required />
+        <Input
+          type="password"
+          name="password"
+          value={form.password}
+          onChange={onChange}
+          required
+        />
 
         <Label>이름</Label>
-        <Input name="username" value={form.username} onChange={onChange} required />
+        <Input
+          name="username"
+          value={form.username}
+          onChange={onChange}
+          required
+        />
 
         <Label>전화번호 (선택)</Label>
         <PhoneField>
-          
           <PhoneInput
             value={phoneParts.first}
             onChange={onPhoneChange("first")}
             maxLength={3}
           />
-          
           <span>-</span>
-          
           <PhoneInput
             value={phoneParts.second}
             onChange={onPhoneChange("second")}
             maxLength={4}
           />
-          
           <span>-</span>
-          
           <PhoneInput
             value={phoneParts.third}
             onChange={onPhoneChange("third")}
             maxLength={4}
           />
-          
         </PhoneField>
 
         <Label>생년월일 (선택)</Label>
-        <Input type="date" name="birthDate" value={form.birthDate} onChange={onChange} />
+        <Input
+          type="date"
+          name="birthDate"
+          value={form.birthDate}
+          onChange={onChange}
+        />
 
-        <button type="submit" style={btnPrimary}>다음 단계(카테고리 선택)</button>
+        <button type="submit" style={btnPrimary}>
+          다음 단계(카테고리 선택)
+        </button>
       </form>
+
       {err && <p style={{ color: "#d00", marginTop: 12 }}>{err}</p>}
 
       <div
@@ -333,56 +382,67 @@ export default function LocalRegister() {
           fontSize: 12,
         }}
       >
-        <div style={{ flex: 1, height: 1, background: "#eee" }} />
-        <span>또는</span>
-        <div style={{ flex: 1, height: 1, background: "#eee" }} />
+        {/* 필요 시 안내 문구 넣을 자리 */}
       </div>
-
-      <button
-        onClick={() => goGoogleLogin()}
-        style={{
-          marginTop: 12,
-          width: "100%",
-          padding: "12px 16px",
-          borderRadius: 8,
-          border: "none",
-          background: "#4285F4",
-          color: "#fff",
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-      >
-        구글 계정으로 빠르게 가입하기
-      </button>
     </main>
   );
 }
 
+const Label = (p) => (
+  <label style={{ display: "block", fontSize: 13, marginBottom: 6 }} {...p} />
+);
 
-const Label = (p) => <label style={{ display: "block", fontSize: 13, marginBottom: 6 }} {...p} />;
-const Input = (p) => <input style={{ width: "100%", padding: "10px 12px", border: "1px solid #ccc", borderRadius: 8, marginBottom: 12 }} {...p} />;
-const PhoneField = (p) => (
-  <div
+const Input = (p) => (
+  <input
     style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 4,
+      width: "100%",
+      boxSizing: "border-box",
+      padding: "10px 12px",
+      border: "1px solid #ccc",
+      borderRadius: 8,
       marginBottom: 12,
     }}
     {...p}
   />
 );
+
+const PhoneField = (p) => (
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "1fr auto 1fr auto 1fr", // 인풋 3개 + '-' 2개
+      columnGap: 8,
+      alignItems: "center",
+      marginBottom: 12,
+      width: "100%",
+      boxSizing: "border-box",
+    }}
+    {...p}
+  />
+);
+
 const PhoneInput = (p) => (
   <input
     inputMode="numeric"
     pattern="[0-9]*"
     style={{
-      width: 64,
+      width: "100%",
       padding: "8px 10px",
       border: "1px solid #ccc",
       borderRadius: 8,
+      boxSizing: "border-box",
     }}
     {...p}
   />
 );
-const btnPrimary = { width: "100%", marginTop: 12, padding: "12px 16px", borderRadius: 8, background: "#111", color: "#fff", border: "none", cursor: "pointer" };
+
+const btnPrimary = {
+  width: "100%",
+  marginTop: 12,
+  padding: "12px 16px",
+  borderRadius: 8,
+  background: "#111",
+  color: "#fff",
+  border: "none",
+  cursor: "pointer",
+};

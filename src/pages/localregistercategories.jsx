@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { api, login } from "../api/nuzipclientapi";
 
-// 서버 enum 키 + 한글 라벨 매핑
 const CATEGORY_OPTIONS = [
   { key: "POLITICS", label: "정치" },
   { key: "ECONOMY", label: "경제" },
@@ -18,11 +17,10 @@ const CATEGORY_OPTIONS = [
 
 export default function LocalRegisterCategories({ onComplete }) {
   const nav = useNavigate();
-  const [selected, setSelected] = useState([]); // ✅ enum 키 배열
+  const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
-  // 1단계 초안 없으면 폼으로 되돌림
   const draft = (() => {
     const raw = sessionStorage.getItem("signupDraft");
     if (!raw) return null;
@@ -34,13 +32,20 @@ export default function LocalRegisterCategories({ onComplete }) {
     }
   })();
 
+  // ★ 2단계 진입 자격 확인
   useEffect(() => {
-    if (!draft || !draft.emailVerified) {
+    const status = sessionStorage.getItem("registerFlow");
+    if (status !== "step2" || !draft || !draft.emailVerified) {
+      sessionStorage.removeItem("signupDraft");
+      sessionStorage.removeItem("registerFlow");
       nav("/register", { replace: true });
+      return;
     }
+
+    sessionStorage.setItem("registerFlow", "step2");
   }, [draft, nav]);
 
-  const canSubmit = useMemo(() => selected.length === 3, [selected]); // ✅ 정확히 3
+  const canSubmit = useMemo(() => selected.length === 3, [selected]);
 
   const toggle = (key) => {
     setSelected((prev) =>
@@ -65,20 +70,18 @@ export default function LocalRegisterCategories({ onComplete }) {
     setErr("");
     setLoading(true);
     try {
-      // ① 회원가입 생성
       await api.post("/api/auth/register", draft);
 
-      // ② 바로 로그인해서 JWT 확보
       const bearer = await login({ userId: draft.userId, password: draft.password });
-      // 'Bearer ' 제거 후 순수 JWT만 저장 (인터셉터에서 Bearer 추가)
       const rawToken = bearer.startsWith("Bearer ") ? bearer.slice(7) : bearer;
       sessionStorage.setItem("jwt", rawToken);
 
-      // ③ 카테고리 저장 (키 전송)
       await api.post("/api/users/me/categories", { categories: selected });
 
-      // ④ 완료
+      // ★ 정상 완료 시에만 플로우/임시 데이터 삭제
       sessionStorage.removeItem("signupDraft");
+      sessionStorage.removeItem("registerFlow");
+
       if (onComplete) {
         await onComplete();
       }

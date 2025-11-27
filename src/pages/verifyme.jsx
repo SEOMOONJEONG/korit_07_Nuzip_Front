@@ -95,9 +95,9 @@ useEffect(() => {
             type="password"
             value={password}
             onChange={e=>setPassword(e.target.value)}
-            placeholder="현재 비밀번호"
+            placeholder="비밀번호"
             required
-            style={{width:"100%", padding:"10px 12px", borderRadius:8, border:"1px solid #ccc", marginBottom:12}}
+            style={{width:"100%", padding:"10px 12px", boxSizing: "border-box", borderRadius:8, border:"1px solid #ccc", marginBottom:24}}
           />
           <button type="submit" style={{width:"100%", padding:"12px 16px", borderRadius:8, background:"#111", color:"#fff", border:"none"}}>
             확인
