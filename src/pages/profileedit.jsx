@@ -456,7 +456,7 @@ export default function ProfileEditPage() {
         <span style={{ fontSize: 16 }}>›</span>
       </div>
 
-      {/* 🔹 비밀번호 변경 모달 */}
+      {/* 비밀번호 변경 모달 */}
       {pwModalOpen && provider === "LOCAL" && (
         <div
           style={{
@@ -607,6 +607,10 @@ const TextInput = (props) => (
     }}
   />
 );
+
+TextInput.propTypes = {
+  style: PropTypes.object,
+};
 
 const PhonePartInput = ({ value, onChange, maxLength, placeholder }) => (
   <input

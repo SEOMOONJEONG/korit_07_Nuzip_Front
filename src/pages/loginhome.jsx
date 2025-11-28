@@ -18,5 +18,6 @@ export default function LoginHome({ me }) {
 LoginHome.propTypes = {
   me: PropTypes.shape({
     userId: PropTypes.string,
+    username: PropTypes.string,
   }),
 };

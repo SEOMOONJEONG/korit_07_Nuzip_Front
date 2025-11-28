@@ -100,3 +100,20 @@ export function isValidEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 }
+
+// ========================== 컨텐츠 (스크랩/메모/평점) ==========================
+
+export const getMyScraps = () => api.get('/api/content/scrap');
+
+export const removeScrap = (scrapId) => api.delete(`/api/content/scrap/${scrapId}`);
+
+export const createMemo = ({ scrapId, content }) =>
+  api.post('/api/content/memo', { scrapId, content });
+
+export const updateMemo = (memoId, { scrapId, content }) =>
+  api.put(`/api/content/memo/${memoId}`, { scrapId, content });
+
+export const deleteMemo = (memoId) => api.delete(`/api/content/memo/${memoId}`);
+
+export const submitRating = ({ scrapId, rating, feedback, sendToGemini = false }) =>
+  api.post('/api/content/rating', { scrapId, rating, feedback, sendToGemini });

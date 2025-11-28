@@ -18,6 +18,7 @@ import RegisterChoice from './pages/registerchoice';
 // ✅ 프로필 수정 페이지 추가 임포트
 import ProfileEditPage from './pages/profileedit';
 import VerifyMePage from './pages/verifyme';
+import ScrapMyPage from './pages/scrapmypage';
 
 export default function App() {
   const [me, setMe] = useState(null);     // { authenticated, userId, ... } | null
@@ -89,6 +90,7 @@ export default function App() {
           ) : (
             <>
               <NavLink to="/home" style={linkStyle}>홈</NavLink>
+              <NavLink to="/scrap/mypage" style={linkStyle}>마이페이지</NavLink>
 
               {/* ✅ 우측 사용자 이름을 클릭하면 /profile/verify로 이동 */}
               <NavLink
@@ -164,6 +166,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <VerifyMePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/scrap/mypage"
+            element={
+              <ProtectedRoute>
+                <ScrapMyPage />
               </ProtectedRoute>
             }
           />
