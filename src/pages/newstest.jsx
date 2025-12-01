@@ -82,7 +82,6 @@ export default function NewsTestPage() {
       if (scrapId) {
         await removeScrap(scrapId);
       } else {
-          console.log('JWT 바로 전', sessionStorage.getItem('jwt'));
         await createScrap({
           title: article.title,
           url: article.originalLink || article.url || '',
@@ -105,8 +104,11 @@ export default function NewsTestPage() {
   return (
     <div className="news-test-page">
       <header className="news-test-header">
-        <h1>뉴스 스크랩 테스트</h1>
-        <p>아래 기사 10개는 `/api/news`에서 받아온 실제 데이터입니다.</p>
+        <h1>백엔드 뉴스 DB 미리보기</h1>
+        <p>
+          백엔드 `news_article` 테이블에 저장된 기사(최신 {PAGE_SIZE}개)를 `/api/news`로
+          불러와 스크랩 버튼만 확인할 수 있는 테스트 페이지입니다.
+        </p>
       </header>
 
       {error && <div className="news-test-status">{error}</div>}
