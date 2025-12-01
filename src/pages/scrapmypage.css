@@ -419,7 +419,7 @@
 }
 
 /* 메모 칸을 메모 영역 너비에 꽉 차게 */
-.memo-form textarea {
+.memo-textarea {
   width: 100%;
   background: #ffffff;
   border: 1px solid #d0d0d0;
@@ -431,17 +431,27 @@
   font-family: inherit;
 }
 
-/* 메모 추가 버튼을 아래 중앙에 배치 */
-.memo-form button {
+/* 메모 작성/수정 공통 버튼 스타일 */
+.memo-btn {
   margin-top: 10px;
   align-self: flex-end;
   padding: 8px 24px;
   border: none;
   border-radius: 4px;
-  background: #222222;
-  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* 검정 버튼 (작성/저장) */
+.memo-btn--primary {
+  background: #222222;
+  color: #ffffff;
+}
+
+/* 연회색 버튼 (취소 등) */
+.memo-btn--secondary {
+  background: #f0f0f0;
+  color: var(--text-muted);
 }
 
 /* 평점 모달 전체 레이아웃 */

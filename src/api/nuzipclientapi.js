@@ -14,10 +14,12 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('jwt');
   if (token) {
-    // 토큰이 이미 "Bearer "로 시작하면 그대로 사용, 아니면 추가
-    const bearerToken = token.trim().startsWith('Bearer ') ? token.trim() : `Bearer ${token.trim()}`;
+    const bearerToken = token.trim().startsWith('Bearer ')
+      ? token.trim()
+      : `Bearer ${token.trim()}`;
     config.headers.Authorization = bearerToken;
   }
+  console.log('[Request Authorization]', config.headers.Authorization); // ← 여기 추가
   return config;
 });
 
@@ -89,6 +91,28 @@ export const goGoogleLogin = (options = {}) => {
   window.location.href = `${API_BASE}/oauth2/authorization/google${suffix}`;
 };
 
+// ✅ 최신 뉴스 기사 목록
+export const fetchLatestNews = ({ page = 0, size = 10 } = {}) =>
+  api.get('/api/news', { params: { page, size } });
+
+// ✅ 카테고리별 뉴스 기사 목록
+export const fetchNewsByCategory = (categoryName, { page = 0, size = 10 } = {}) => {
+  if (!categoryName) {
+    throw new Error('categoryName 파라미터가 필요합니다.');
+  }
+  return api.get(`/api/news/category/${encodeURIComponent(categoryName)}`, {
+    params: { page, size },
+  });
+};
+
+// ✅ 현재 사용자 관심 카테고리 조회
+export const getMyCategories = async () => {
+  const { data } = await api.get('/api/users/me/categories');
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.categories)) return data.categories;
+  return [];
+};
+
 // ✅ 관심 카테고리 저장 (정확히 3개 키 전달)
 export async function saveMyCategories(categories) {
   // categories: ["POLITICS","IT_SCIENCE","WORLD"]
@@ -106,6 +130,9 @@ export function isValidEmail(email) {
 export const getMyScraps = () => api.get('/api/content/scrap');
 
 export const removeScrap = (scrapId) => api.delete(`/api/content/scrap/${scrapId}`);
+
+export const createScrap = ({ title, url, summary }) =>
+  api.post('/api/content/scrap', { title, url, summary });
 
 export const createMemo = ({ scrapId, content }) =>
   api.post('/api/content/memo', { scrapId, content });
