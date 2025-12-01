@@ -793,7 +793,7 @@ export default function ScrapMyPage() {
               <p>{ratingModal.scrap?.summary || '요약이 없습니다.'}</p>
             </div>
             <div className="rating-modal__body">
-            {/* ⭐ 별점 선택 영역 */}
+            {/* 별점 선택 영역 */}
             <div className="rating-modal__stars-wrapper">
               <span className="rating-modal__stars-label">별점 선택</span>
               <div className="rating-modal__stars">
@@ -822,7 +822,7 @@ export default function ScrapMyPage() {
               </div>
             </div>
 
-            {/* ✏️ 피드백 입력 영역은 그대로 유지 */}
+            {/* 피드백 입력 영역은 그대로 유지 */}
             <label>
               AI 요약 피드백
               <textarea
