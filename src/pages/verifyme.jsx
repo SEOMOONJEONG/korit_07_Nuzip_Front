@@ -34,19 +34,19 @@ export default function VerifyMePage() {
     })();
   }, [rawToken]);
 
-// 2) provider 값을 "읽어" 사용: LOCAL이 아니면 바로 edit로 이동
-useEffect(() => {
-  if (!loading && provider !== "LOCAL") {
-    sessionStorage.setItem("oauthAfterLoginPath", "/profile/edit");
+  // 2) provider 값을 "읽어" 사용: LOCAL이 아니면 바로 edit로 이동
+  useEffect(() => {
+    if (!loading && provider !== "LOCAL") {
+      sessionStorage.setItem("oauthAfterLoginPath", "/profile/edit");
 
-    // 네이버 제거 → 오직 구글만 사용
-    goGoogleLogin({
-      purpose: "profile-edit",
-      redirectPath: "/profile/edit",
-      forceReauth: true,
-    });
-  }
-}, [loading, provider]);
+      // 네이버 제거 → 오직 구글만 사용
+      goGoogleLogin({
+        purpose: "profile-edit",
+        redirectPath: "/profile/edit",
+        forceReauth: true,
+      });
+    }
+  }, [loading, provider]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -79,36 +79,175 @@ useEffect(() => {
     }
   };
 
-  if (loading) return <div style={{padding:16}}>로딩 중…</div>;
+  if (loading) {
+    return (
+      <main
+        style={{
+          maxWidth: 480,
+          margin: "60px auto",
+          padding: "24px 16px 40px",
+          background: "#F9FAFB",
+        }}
+      >
+        <div
+          style={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 12,
+            background: "#FFFFFF",
+            padding: 24,
+            fontSize: 14,
+            color: "#4B5563",
+          }}
+        >
+          로딩 중…
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main style={{maxWidth:420, margin:"60px auto", padding:24, border:"1px solid #eee", borderRadius:12}}>
-      <h2 style={{marginTop:0}}>본인 확인</h2>
-      <p style={{color:"#666"}}>비밀번호를 입력하여 본인 인증</p>
-      {err && <p style={{color:"#c00"}}>{err}</p>}
+    <main
+      style={{
+        maxWidth: 480,
+        margin: "60px auto",
+        padding: "24px 16px 40px",
+        background: "#F9FAFB",
+      }}
+    >
+      {/* 카드 래퍼 */}
+      <div
+        style={{
+          border: "1px solid #E5E7EB",
+          borderRadius: 12,
+          background: "#FFFFFF",
+          padding: 24,
+        }}
+      >
+        {/* 상단 타이틀 / 설명 */}
+        <div
+          style={{
+            marginBottom: 12,
+            fontSize: 20,
+            fontWeight: 700,
+            color: "#2563EB",
+          }}
+        >
+          본인 확인
+        </div>
+        <p
+          style={{
+            color: "#4B5563",
+            fontSize: 14,
+            marginBottom: 12,
+          }}
+        >
+          프로필 변경을 위해{" "}
+          <span style={{ color: "#2563EB", fontWeight: 600 }}>본인 인증</span>이 필요합니다.
+        </p>
 
-      {/* ✅ provider 값을 조건 렌더링에 사용: LOCAL일 때만 폼 표시 */}
-      {provider === "LOCAL" ? (
-        <form onSubmit={onSubmit}>
-          <label style={{display:"block", marginBottom:6}}>현재 비밀번호</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e=>setPassword(e.target.value)}
-            placeholder="비밀번호"
-            required
-            style={{width:"100%", padding:"10px 12px", boxSizing: "border-box", borderRadius:8, border:"1px solid #ccc", marginBottom:24}}
-          />
-          <button type="submit" style={{width:"100%", padding:"12px 16px", borderRadius:8, background:"#111", color:"#fff", border:"none"}}>
-            확인
-          </button>
-        </form>
-      ) : (
-        // LOCAL이 아니면 useEffect에서 자동 이동 중
-        <p style={{color:"#666"}}>소셜 계정은 비밀번호 확인 없이 수정 화면으로 이동합니다…</p>
-      )}
+        {err && (
+          <p
+            style={{
+              color: "#DC2626",
+              fontSize: 13,
+              marginBottom: 12,
+            }}
+          >
+            {err}
+          </p>
+        )}
+
+        {/* LOCAL 로그인 사용자만 비밀번호 입력 폼 */}
+        {provider === "LOCAL" ? (
+          <form onSubmit={onSubmit}>
+            <label
+              style={{
+                display: "block",
+                marginBottom: 6,
+                fontSize: 13,
+                color: "#4B5563",
+              }}
+            >
+              현재 비밀번호
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="현재 비밀번호를 입력하세요"
+              required
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                boxSizing: "border-box",
+                borderRadius: 8,
+                border: "1px solid #E8F0FE",
+                marginBottom: 20,
+                fontSize: 14,
+                outline: "none",
+                transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#3B82F6";
+                e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#E8F0FE";
+                e.target.style.boxShadow = "none";
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: 8,
+                background: "#3B82F6",
+                color: "#FFFFFF",
+                border: "none",
+                fontSize: 15,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              확인
+            </button>
+            <p
+              style={{
+                marginTop: 12,
+                fontSize: 12,
+                color: "#6B7280",
+              }}
+            >
+              비밀번호가 기억나지 않는다면{" "}
+              <span style={{ color: "#2563EB" }}>비밀번호 재설정</span>을 진행해 주세요.
+            </p>
+          </form>
+        ) : (
+          // LOCAL이 아닌 경우: 소셜 계정 안내
+          <p
+            style={{
+              marginTop: 8,
+              fontSize: 14,
+              color: "#4B5563",
+            }}
+          >
+            소셜 계정으로 가입된 사용자입니다.{" "}
+            <span style={{ color: "#2563EB", fontWeight: 600 }}>
+              비밀번호 확인 없이
+            </span>{" "}
+            프로필 수정 화면으로 이동 중입니다…
+          </p>
+        )}
+      </div>
     </main>
   );
 }
 
-async function safeJson(res){ try { return await res.json(); } catch { return null; } }
+async function safeJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}

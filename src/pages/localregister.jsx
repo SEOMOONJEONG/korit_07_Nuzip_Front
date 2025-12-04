@@ -7,6 +7,7 @@ import {
   sendEmailVerification,
   confirmEmailVerification,
 } from "../api/nuzipclientapi";
+import NuzipLogo from "./Nuzip_logo2.png"; // 🔹 로고 이미지 추가
 
 export default function LocalRegister() {
   const nav = useNavigate();
@@ -54,7 +55,6 @@ export default function LocalRegister() {
     const nextValue = name === "userId" ? value.trim().toLowerCase() : value;
     setForm((f) => ({ ...f, [name]: nextValue }));
     if (name === "userId") {
-      // 이메일이 바뀌면 인증 상태 초기화
       setEmailVerified(false);
       setVerificationCode("");
       setVerificationNotice("");
@@ -71,15 +71,12 @@ export default function LocalRegister() {
     }));
   };
 
-  // 🔹 1단계 진입 시: 항상 새 플로우 시작 (이메일 포함 모든 값 초기화)
   useEffect(() => {
-    // 이전 가입 도중 남아있던 데이터 제거 → 새 1단계 시작
     sessionStorage.removeItem("signupDraft");
     sessionStorage.setItem("registerFlow", "step1");
 
     return () => {
       const status = sessionStorage.getItem("registerFlow");
-      // 여전히 step1이면 → 2단계로 이동하지 않고 나간 것 → 플로우 초기화
       if (status === "step1") {
         sessionStorage.removeItem("signupDraft");
         sessionStorage.removeItem("registerFlow");
@@ -133,7 +130,6 @@ export default function LocalRegister() {
       setVerificationNotice("이메일 인증이 완료되었습니다.");
       setErr("");
 
-      // 이메일 + 인증 완료 상태를 초안에 저장 (2단계에서 사용)
       persistDraft({
         userId: form.userId,
         emailVerified: true,
@@ -153,13 +149,11 @@ export default function LocalRegister() {
     e.preventDefault();
     setErr("");
 
-    // 필수값 체크
     if (!form.userId || !form.password || !form.username) {
       setErr("이메일/비밀번호/이름은 필수입니다.");
       return;
     }
 
-    // 이메일 형식 체크
     if (!isValidEmail(form.userId)) {
       setErr("아이디는 이메일 형식이어야 합니다.");
       return;
@@ -175,7 +169,6 @@ export default function LocalRegister() {
       return;
     }
 
-    // 중복 아이디(이메일) 체크
     try {
       await api.get("/api/auth/register/check", {
         params: { userId: form.userId },
@@ -199,210 +192,266 @@ export default function LocalRegister() {
       emailVerified: true,
     };
 
-    // 1단계 전체 데이터 임시 저장 (2단계에서 사용)
     sessionStorage.setItem("signupDraft", JSON.stringify(draftPayload));
-
-    // 이제 2단계로 이동한다는 표시
     sessionStorage.setItem("registerFlow", "step2");
-
-    // 2단계(카테고리 선택) 페이지로 이동
     nav("/register/categories");
   };
 
   return (
     <main
       style={{
-        maxWidth: 420,
+        maxWidth: 480,
         margin: "60px auto",
-        padding: 24,
-        border: "1px solid #eee",
-        borderRadius: 12,
+        padding: "24px 16px 40px",
+        background: "#F9FAFB",
       }}
     >
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>회원가입</h1>
-      <form onSubmit={goNext}>
-        <Label>이메일 (아이디)</Label>
-        <Input
-          type="email"
-          name="userId"
-          value={form.userId}
-          onChange={onChange}
-          required
-          disabled={emailVerified} // 인증 완료 시 수정 불가
+      {/* 🔹 상단 로고 + 회원가입 타이틀 */}
+      <div
+        style={{
+          marginBottom: 16,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <img
+          src={NuzipLogo}
+          alt="Nuzip 로고"
+          style={{
+            width: 180,
+            height: "auto",
+          }}
         />
-
         <div
           style={{
-            display: "flex",
-            gap: 8,
-            boxSizing: "border-box",
-            marginBottom: 12,
+            marginTop: 10,
+            fontSize: 22,
+            fontWeight: 700,
+            color: "#2563EB", // 진한 남색/그레이톤
           }}
         >
-          <button
-            type="button"
-            onClick={sendVerification}
-            disabled={
-              sendingEmail ||
-              emailVerified ||
-              !form.userId ||
-              !isValidEmail(form.userId) ||
-              isGmail
-            }
+          회원가입
+        </div>
+      </div>
+
+      {/* 카드 형태 폼 래퍼 */}
+      <div
+        style={{
+          border: "1px solid #E5E7EB",
+          borderRadius: 12,
+          background: "#FFFFFF",
+          padding: 20,
+        }}
+      >
+        <form onSubmit={goNext}>
+          <Label>이메일 (아이디)</Label>
+          <Input
+            type="email"
+            name="userId"
+            value={form.userId}
+            onChange={onChange}
+            required
+            disabled={emailVerified}
+          />
+
+          <div
             style={{
-              flex: 1,
-              padding: "10px 12px",
-              borderRadius: 8,
-              border: "1px solid #ccc",
-              background: emailVerified ? "#16a34a" : "#f4f4f5",
-              color: emailVerified ? "#fff" : "#111",
-              cursor: emailVerified ? "default" : "pointer",
+              display: "flex",
+              gap: 8,
+              boxSizing: "border-box",
+              marginBottom: 12,
             }}
           >
-            {emailVerified ? "인증 완료" : sendingEmail ? "발송 중..." : "인증 메일 보내기"}
-          </button>
-        </div>
-
-        {!emailVerified && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            {/* 이 칸은 공통 Input 말고 개별 스타일 */}
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="메일로 받은 6자리 코드"
-              value={verificationCode}
-              onChange={(e) =>
-                setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+            <button
+              type="button"
+              onClick={sendVerification}
+              disabled={
+                sendingEmail ||
+                emailVerified ||
+                !form.userId ||
+                !isValidEmail(form.userId) ||
+                isGmail
               }
               style={{
                 flex: 1,
                 padding: "10px 12px",
-                border: "1px solid #ccc",
                 borderRadius: 8,
-                boxSizing: "border-box",
-              }}
-            />
-            <button
-              type="button"
-              onClick={confirmVerification}
-              disabled={
-                checkingCode || verificationCode.length !== 6 || !form.userId || isGmail
-              }
-              style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                border: "none",
-                background: checkingCode ? "#ccc" : "#111",
-                color: "#fff",
-                cursor: checkingCode ? "not-allowed" : "pointer",
+                border: "1px solid #3B82F6",
+                background: emailVerified ? "#3B82F6" : "#FFFFFF",
+                color: emailVerified ? "#FFFFFF" : "#2563EB",
+                cursor: emailVerified ? "default" : "pointer",
+                fontSize: 14,
+                fontWeight: 500,
               }}
             >
-              {checkingCode ? "확인 중..." : "인증 확인"}
+              {emailVerified ? "인증 완료" : sendingEmail ? "발송 중..." : "인증 메일 보내기"}
             </button>
           </div>
-        )}
 
-        {verificationNotice && (
-          <p style={{ color: "#15803d", fontSize: 12, marginBottom: 8 }}>
-            {verificationNotice}
-          </p>
-        )}
-        {verificationError && (
-          <p style={{ color: "#dc2626", fontSize: 12, marginBottom: 8 }}>
-            {verificationError}
-          </p>
-        )}
-        {isGmail && (
-          <p style={{ color: "#b45309", fontSize: 12, marginBottom: 8 }}>
-            Gmail 계정은 하단의 구글 계정 빠른 가입을 이용해주세요.
-          </p>
-        )}
+          {!emailVerified && (
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="메일로 받은 6자리 코드"
+                value={verificationCode}
+                onChange={(e) =>
+                  setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  border: "1px solid #E8F0FE",
+                  borderRadius: 8,
+                  boxSizing: "border-box",
+                  fontSize: 14,
+                  outline: "none",
+                  transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3B82F6";
+                  e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#E8F0FE";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+              <button
+                type="button"
+                onClick={confirmVerification}
+                disabled={
+                  checkingCode || verificationCode.length !== 6 || !form.userId || isGmail
+                }
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: checkingCode ? "#CBD5F5" : "#3B82F6",
+                  color: "#fff",
+                  cursor: checkingCode ? "not-allowed" : "pointer",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  minWidth: 96,
+                }}
+              >
+                {checkingCode ? "확인 중..." : "인증 확인"}
+              </button>
+            </div>
+          )}
 
-        <Label>비밀번호</Label>
-        <Input
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={onChange}
-          required
-        />
+          {verificationNotice && (
+            <p style={{ color: "#2563EB", fontSize: 12, marginBottom: 8 }}>
+              {verificationNotice}
+            </p>
+          )}
+          {verificationError && (
+            <p style={{ color: "#DC2626", fontSize: 12, marginBottom: 8 }}>
+              {verificationError}
+            </p>
+          )}
+          {isGmail && (
+            <p style={{ color: "#B45309", fontSize: 12, marginBottom: 8 }}>
+              Gmail 계정은 하단의 구글 계정 빠른 가입을 이용해주세요.
+            </p>
+          )}
 
-        <Label>이름</Label>
-        <Input
-          name="username"
-          value={form.username}
-          onChange={onChange}
-          required
-        />
-
-        <Label>전화번호 (선택)</Label>
-        <PhoneField>
-          <PhoneInput
-            value={phoneParts.first}
-            onChange={onPhoneChange("first")}
-            maxLength={3}
+          <Label>비밀번호</Label>
+          <Input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={onChange}
+            required
           />
-          <span>-</span>
-          <PhoneInput
-            value={phoneParts.second}
-            onChange={onPhoneChange("second")}
-            maxLength={4}
+
+          <Label>이름</Label>
+          <Input
+            name="username"
+            value={form.username}
+            onChange={onChange}
+            required
           />
-          <span>-</span>
-          <PhoneInput
-            value={phoneParts.third}
-            onChange={onPhoneChange("third")}
-            maxLength={4}
+
+          <Label>전화번호 (선택)</Label>
+          <PhoneField>
+            <PhoneInput
+              value={phoneParts.first}
+              onChange={onPhoneChange("first")}
+              maxLength={3}
+            />
+            <span>-</span>
+            <PhoneInput
+              value={phoneParts.second}
+              onChange={onPhoneChange("second")}
+              maxLength={4}
+            />
+            <span>-</span>
+            <PhoneInput
+              value={phoneParts.third}
+              onChange={onPhoneChange("third")}
+              maxLength={4}
+            />
+          </PhoneField>
+
+          <Label>생년월일 (선택)</Label>
+          <Input
+            type="date"
+            name="birthDate"
+            value={form.birthDate}
+            onChange={onChange}
           />
-        </PhoneField>
 
-        <Label>생년월일 (선택)</Label>
-        <Input
-          type="date"
-          name="birthDate"
-          value={form.birthDate}
-          onChange={onChange}
-        />
+          <button type="submit" style={btnPrimary}>
+            다음 단계(카테고리 선택)
+          </button>
+        </form>
 
-        <button type="submit" style={btnPrimary}>
-          다음 단계(카테고리 선택)
-        </button>
-      </form>
-
-      {err && <p style={{ color: "#d00", marginTop: 12 }}>{err}</p>}
-
-      <div
-        style={{
-          marginTop: 24,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          color: "#888",
-          fontSize: 12,
-        }}
-      >
-        {/* 필요 시 안내 문구 넣을 자리 */}
+        {err && <p style={{ color: "#DC2626", marginTop: 12, fontSize: 13 }}>{err}</p>}
       </div>
     </main>
   );
 }
 
 const Label = (p) => (
-  <label style={{ display: "block", fontSize: 13, marginBottom: 6 }} {...p} />
+  <label
+    style={{
+      display: "block",
+      fontSize: 13,
+      marginBottom: 6,
+      color: "#4B5563",
+    }}
+    {...p}
+  />
 );
 
 const Input = (p) => (
   <input
+    {...p}
     style={{
       width: "100%",
       boxSizing: "border-box",
       padding: "10px 12px",
-      border: "1px solid #ccc",
+      border: "1px solid #E8F0FE",
       borderRadius: 8,
       marginBottom: 12,
+      fontSize: 14,
+      outline: "none",
+      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+      ...(p.style || {}),
     }}
-    {...p}
+    onFocus={(e) => {
+      p.onFocus && p.onFocus(e);
+      e.target.style.borderColor = "#3B82F6";
+      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+    }}
+    onBlur={(e) => {
+      p.onBlur && p.onBlur(e);
+      e.target.style.borderColor = "#E8F0FE";
+      e.target.style.boxShadow = "none";
+    }}
   />
 );
 
@@ -410,7 +459,7 @@ const PhoneField = (p) => (
   <div
     style={{
       display: "grid",
-      gridTemplateColumns: "1fr auto 1fr auto 1fr", // 인풋 3개 + '-' 2개
+      gridTemplateColumns: "1fr auto 1fr auto 1fr",
       columnGap: 8,
       alignItems: "center",
       marginBottom: 12,
@@ -423,26 +472,42 @@ const PhoneField = (p) => (
 
 const PhoneInput = (p) => (
   <input
+    {...p}
     inputMode="numeric"
     pattern="[0-9]*"
     style={{
       width: "100%",
       padding: "8px 10px",
-      border: "1px solid #ccc",
+      border: "1px solid #E8F0FE",
       borderRadius: 8,
       boxSizing: "border-box",
+      fontSize: 14,
+      outline: "none",
+      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+      ...(p.style || {}),
     }}
-    {...p}
+    onFocus={(e) => {
+      p.onFocus && p.onFocus(e);
+      e.target.style.borderColor = "#3B82F6";
+      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+    }}
+    onBlur={(e) => {
+      p.onBlur && p.onBlur(e);
+      e.target.style.borderColor = "#E8F0FE";
+      e.target.style.boxShadow = "none";
+    }}
   />
 );
 
 const btnPrimary = {
   width: "100%",
-  marginTop: 12,
-  padding: "12px 16px",
+  marginTop: 16,
+  padding: "13px 16px",
   borderRadius: 8,
-  background: "#111",
+  background: "#3B82F6",
   color: "#fff",
   border: "none",
   cursor: "pointer",
+  fontSize: 15,
+  fontWeight: 600,
 };

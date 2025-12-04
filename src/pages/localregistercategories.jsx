@@ -70,15 +70,26 @@ export default function LocalRegisterCategories({ onComplete }) {
     setErr("");
     setLoading(true);
     try {
-      await api.post("/api/auth/register", draft);
+      const payload = {
+        userId: draft.userId,
+        password: draft.password,
+        username: draft.username,
+        birthDate: draft.birthDate ?? null,
+        phone: draft.phone ?? "",
+      };
+      await api.post("/api/auth/register", payload);
 
-      const bearer = await login({ userId: draft.userId, password: draft.password });
-      const rawToken = bearer.startsWith("Bearer ") ? bearer.slice(7) : bearer;
+      const bearer = await login({
+        userId: draft.userId,
+        password: draft.password,
+      });
+      const rawToken = bearer.startsWith("Bearer ")
+        ? bearer.slice(7)
+        : bearer;
       sessionStorage.setItem("jwt", rawToken);
 
       await api.post("/api/users/me/categories", { categories: selected });
 
-      // ★ 정상 완료 시에만 플로우/임시 데이터 삭제
       sessionStorage.removeItem("signupDraft");
       sessionStorage.removeItem("registerFlow");
 
@@ -98,51 +109,149 @@ export default function LocalRegisterCategories({ onComplete }) {
   };
 
   return (
-    <main style={{ maxWidth: 640, margin: "60px auto", padding: 24 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>이메일 회원가입 (2/2)</h1>
-      <p style={{ color: "#666", marginBottom: 16 }}>관심 카테고리를 정확히 3개 선택하세요.</p>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-        {CATEGORY_OPTIONS.map(({ key, label }) => {
-          const active = selected.includes(key);
-          return (
-            <button
-              key={key}
-              onClick={() => toggle(key)}
-              style={{
-                padding: "10px 12px",
-                border: "1px solid #ddd",
-                borderRadius: 8,
-                background: active ? "#111" : "#fff",
-                color: active ? "#fff" : "#111",
-                textAlign: "left",
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
+    <main
+      style={{
+        maxWidth: 480,
+        margin: "60px auto",
+        padding: "24px 16px 40px",
+        background: "#F9FAFB",
+      }}
+    >
+      {/* 상단 타이틀 (1단계와 톤 맞춤) */}
+      <div
+        style={{
+          marginBottom: 16,
+          fontSize: 20,
+          fontWeight: 700,
+          color: "#2563EB",
+        }}
+      >
+        관심 카테고리 선택
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontSize: 13, color: "#666" }}>선택: {selected.length} / 3</span>
-        <button
-          disabled={!canSubmit || loading}
-          onClick={finish}
+      {/* 카드 래퍼 */}
+      <div
+        style={{
+          border: "1px solid #E5E7EB",
+          borderRadius: 12,
+          background: "#FFFFFF",
+          padding: 20,
+        }}
+      >
+        <p
           style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            background: canSubmit && !loading ? "#2563eb" : "#ccc",
-            color: "#fff",
-            border: "none",
-            cursor: canSubmit && !loading ? "pointer" : "not-allowed",
+            color: "#4B5563",
+            marginBottom: 16,
+            fontSize: 14,
           }}
         >
-          {loading ? "처리 중..." : "가입 완료"}
-        </button>
-      </div>
+          뉴스 요약 피드를 위해 관심 있는 카테고리를{" "}
+          <span style={{ color: "#2563EB", fontWeight: 600 }}>정확히 3개</span> 선택해 주세요.
+        </p>
 
-      {err && <p style={{ color: "#d00", marginTop: 12 }}>{err}</p>}
+        {/* 카테고리 그리드 */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 10,
+            marginBottom: 12,
+          }}
+        >
+          {CATEGORY_OPTIONS.map(({ key, label }) => {
+            const active = selected.includes(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggle(key)}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: active ? "1px solid #3B82F6" : "1px solid #E8F0FE",
+                  background: active ? "#E8F0FE" : "#FFFFFF",
+                  color: "#111827",
+                  textAlign: "left",
+                  fontSize: 14,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  boxSizing: "border-box",
+                }}
+              >
+                <span>{label}</span>
+                {active && (
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#2563EB",
+                      fontWeight: 600,
+                    }}
+                  >
+                    선택됨
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 하단 상태 + 버튼 */}
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              color: "#6B7280",
+            }}
+          >
+            선택:{" "}
+            <span style={{ color: "#2563EB", fontWeight: 600 }}>
+              {selected.length}
+            </span>{" "}
+            / 3
+          </span>
+
+          <button
+            type="button"
+            disabled={!canSubmit || loading}
+            onClick={finish}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 8,
+              background:
+                canSubmit && !loading ? "#3B82F6" : "#CBD5F5",
+              color: "#FFFFFF",
+              border: "none",
+              cursor:
+                canSubmit && !loading ? "pointer" : "not-allowed",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            {loading ? "처리 중..." : "가입 완료"}
+          </button>
+        </div>
+
+        {err && (
+          <p
+            style={{
+              color: "#DC2626",
+              marginTop: 12,
+              fontSize: 13,
+            }}
+          >
+            {err}
+          </p>
+        )}
+      </div>
     </main>
   );
 }

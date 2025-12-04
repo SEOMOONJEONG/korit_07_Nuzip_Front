@@ -144,3 +144,10 @@ export const deleteMemo = (memoId) => api.delete(`/api/content/memo/${memoId}`);
 
 export const submitRating = ({ scrapId, rating, feedback, sendToGemini = false }) =>
   api.post('/api/content/rating', { scrapId, rating, feedback, sendToGemini });
+
+// ========================== 알림 ==========================
+
+export const getNotifications = () => api.get('/api/notifications');
+
+export const markNotificationRead = (notificationId) =>
+  api.post(`/api/notifications/${notificationId}/read`);

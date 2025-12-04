@@ -205,7 +205,7 @@ export default function ProfileEditPage() {
 
       const res = await fetch(`${API_BASE}/api/users/me`, {
         method: "PATCH",
-        headers: authHeaders(true),   // ✅ 프로필 저장과 완전히 동일한 헤더 사용
+        headers: authHeaders(true), // ✅ 프로필 저장과 완전히 동일한 헤더 사용
         body: JSON.stringify({
           newPassword,
           confirmNewPassword,
@@ -262,198 +262,266 @@ export default function ProfileEditPage() {
     }
   };
 
-  if (loading) return <div style={{ padding: 16 }}>로딩 중…</div>;
+  if (loading) {
+    return (
+      <main
+        style={{
+          maxWidth: 720,
+          margin: "40px auto",
+          padding: "24px 16px 40px",
+          background: "#F9FAFB",
+        }}
+      >
+        <div
+          style={{
+            borderRadius: 12,
+            border: "1px solid #E5E7EB",
+            background: "#FFFFFF",
+            padding: 28,
+            fontSize: 14,
+            color: "#4B5563",
+          }}
+        >
+          로딩 중…
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div
+    <main
       style={{
-        maxWidth: 480,
+        maxWidth: 720,
         margin: "40px auto",
-        padding: 24,
-        border: "1px solid #eee",
-        borderRadius: 12,
+        padding: "24px 16px 40px",
+        background: "#F9FAFB",
       }}
     >
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>회원정보 수정</h1>
-
-      {error && (
-        <div
+      <div
+        style={{
+          border: "1px solid #E5E7EB",
+          borderRadius: 12,
+          background: "#FFFFFF",
+          padding: 24,
+        }}
+      >
+        <h1
           style={{
+            fontSize: 20,
+            fontWeight: 700,
             marginBottom: 12,
-            padding: 10,
-            borderRadius: 8,
-            background: "#ffecec",
-            border: "1px solid #ffb3b3",
-            fontSize: 13,
+            color: "#2563EB",
           }}
         >
-          {error}
-        </div>
-      )}
-      {okMsg && (
-        <div
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            borderRadius: 8,
-            background: "#e9ffe9",
-            border: "1px solid #b3ffb3",
-            fontSize: 13,
-          }}
-        >
-          {okMsg}
-        </div>
-      )}
+          회원정보 수정
+        </h1>
 
-      <form onSubmit={onSubmit}>
-        {/* 닉네임 */}
-        <FormField label="닉네임">
-          <TextInput value={username} onChange={(e) => setUsername(e.target.value)} required />
-        </FormField>
-
-        {/* 생년월일 */}
-        <FormField label="생년월일 (선택)">
-          <TextInput
-            type="date"
-            value={birthDate || ""}
-            onChange={(e) => setBirthDate(e.target.value)}
-          />
-        </FormField>
-
-        {/* 핸드폰 */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: "block", fontWeight: 600, marginBottom: 6 }}>
-            핸드폰 (선택)
-          </label>
-
+        {error && (
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto 1fr auto 1fr", // 인풋 3개 + '-' 2개
-              columnGap: 8,
-              alignItems: "center",
-              width: "100%",
-              boxSizing: "border-box",
+              marginBottom: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: "#FEE2E2",
+              border: "1px solid #FCA5A5",
+              fontSize: 13,
+              color: "#B91C1C",
             }}
           >
-            <PhonePartInput
-              value={phoneParts.first}
-              onChange={(val) => handlePhoneChange("first", val)}
-              maxLength={3}
-            />
-            <span>-</span>
-            <PhonePartInput
-              value={phoneParts.second}
-              onChange={(val) => handlePhoneChange("second", val)}
-              maxLength={4}
-            />
-            <span>-</span>
-            <PhonePartInput
-              value={phoneParts.third}
-              onChange={(val) => handlePhoneChange("third", val)}
-              maxLength={4}
-            />
+            {error}
           </div>
-        </div>
-
-        {/* 카테고리 */}
-        <FormField label="관심 카테고리 (정확히 3개)">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {CATEGORY_OPTIONS.map(({ key, label }) => {
-              const active = categories.includes(key);
-              return (
-                <button
-                  type="button"
-                  key={key}
-                  onClick={() => toggleCategory(key)}
-                  style={{
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    border: "1px solid #ddd",
-                    background: active ? "#111" : "#fff",
-                    color: active ? "#fff" : "#111",
-                    textAlign: "left",
-                    fontSize: 14,
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+        )}
+        {okMsg && (
           <div
             style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: categories.length === 3 ? "#16a34a" : "#dc2626",
+              marginBottom: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: "#DCFCE7",
+              border: "1px solid #BBF7D0",
+              fontSize: 13,
+              color: "#166534",
             }}
           >
-            선택: {categories.length} / 3
-          </div>
-        </FormField>
-
-        {/* 비밀번호 수정 행 (LOCAL만) */}
-        {provider === "LOCAL" && (
-          <div
-            style={{
-              marginTop: 16,
-              padding: 12,
-              borderRadius: 12,
-              border: "1px solid #eee",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 14, color: "#111" }}>비밀번호</span>
-            <button
-              type="button"
-              onClick={() => {
-                setPwModalOpen(true);
-                setPwError("");
-                setPwOk("");
-                setNewPassword("");
-                setConfirmNewPassword("");
-              }}
-              style={{
-                padding: "6px 14px",
-                borderRadius: 8,
-                border: "1px solid #111",
-                background: "#111",
-                color: "#fff",
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              수정
-            </button>
+            {okMsg}
           </div>
         )}
 
-        {/* 저장 버튼 */}
-        <button type="submit" disabled={saving} style={btnPrimary}>
-          {saving ? "저장 중..." : "저장하기"}
-        </button>
-      </form>
+        <form onSubmit={onSubmit}>
+          {/* 닉네임 */}
+          <FormField label="닉네임">
+            <TextInput value={username} onChange={(e) => setUsername(e.target.value)} required />
+          </FormField>
 
-      {/* 회원 탈퇴 링크 스타일 */}
-      <div
-        onClick={deleting ? undefined : handleDeleteAccount}
-        style={{
-          marginTop: 16,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          cursor: deleting ? "not-allowed" : "pointer",
-          opacity: deleting ? 0.5 : 1,
-          fontSize: 13,
-          color: "#666",
-          gap: 4,
-        }}
-      >
-        <span>회원탈퇴</span>
-        <span style={{ fontSize: 16 }}>›</span>
+          {/* 생년월일 */}
+          <FormField label="생년월일 (선택)">
+            <TextInput
+              type="date"
+              value={birthDate || ""}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
+          </FormField>
+
+          {/* 핸드폰 */}
+          <div style={{ marginBottom: 12 }}>
+            <label
+              style={{
+                display: "block",
+                fontWeight: 600,
+                marginBottom: 6,
+                fontSize: 13,
+                color: "#4B5563",
+              }}
+            >
+              핸드폰 (선택)
+            </label>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto 1fr auto 1fr", // 인풋 3개 + '-' 2개
+                columnGap: 8,
+                alignItems: "center",
+                width: "100%",
+                boxSizing: "border-box",
+              }}
+            >
+              <PhonePartInput
+                value={phoneParts.first}
+                onChange={(val) => handlePhoneChange("first", val)}
+                maxLength={3}
+              />
+              <span>-</span>
+              <PhonePartInput
+                value={phoneParts.second}
+                onChange={(val) => handlePhoneChange("second", val)}
+                maxLength={4}
+              />
+              <span>-</span>
+              <PhonePartInput
+                value={phoneParts.third}
+                onChange={(val) => handlePhoneChange("third", val)}
+                maxLength={4}
+              />
+            </div>
+          </div>
+
+          {/* 카테고리 */}
+          <FormField label="관심 카테고리 (정확히 3개)">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {CATEGORY_OPTIONS.map(({ key, label }) => {
+                const active = categories.includes(key);
+                return (
+                  <button
+                    type="button"
+                    key={key}
+                    onClick={() => toggleCategory(key)}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: active ? "1px solid #3B82F6" : "1px solid #E8F0FE",
+                      background: active ? "#E8F0FE" : "#FFFFFF",
+                      color: "#111827",
+                      textAlign: "left",
+                      fontSize: 14,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <span>{label}</span>
+                    {active && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#2563EB",
+                          fontWeight: 600,
+                        }}
+                      >
+                        선택됨
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 12,
+                color: categories.length === 3 ? "#16A34A" : "#DC2626",
+              }}
+            >
+              선택: {categories.length} / 3
+            </div>
+          </FormField>
+
+          {/* 비밀번호 수정 행 (LOCAL만) */}
+          {provider === "LOCAL" && (
+            <div
+              style={{
+                marginTop: 16,
+                padding: 12,
+                borderRadius: 12,
+                border: "1px solid #E8F0FE",
+                background: "#F9FAFB",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 8,
+              }}
+            >
+              <span style={{ fontSize: 14, color: "#111827" }}>비밀번호</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setPwModalOpen(true);
+                  setPwError("");
+                  setPwOk("");
+                  setNewPassword("");
+                  setConfirmNewPassword("");
+                }}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 8,
+                  border: "1px solid #2563EB",
+                  background: "#2563EB",
+                  color: "#FFFFFF",
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                수정
+              </button>
+            </div>
+          )}
+
+          {/* 저장 버튼 */}
+          <button type="submit" disabled={saving} style={btnPrimary}>
+            {saving ? "저장 중..." : "저장하기"}
+          </button>
+        </form>
+
+        {/* 회원 탈퇴 링크 스타일 */}
+        <div
+          onClick={deleting ? undefined : handleDeleteAccount}
+          style={{
+            marginTop: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            cursor: deleting ? "not-allowed" : "pointer",
+            opacity: deleting ? 0.5 : 1,
+            fontSize: 13,
+            color: "#6B7280",
+            gap: 4,
+          }}
+        >
+          <span>회원탈퇴</span>
+          <span style={{ fontSize: 16 }}>›</span>
+        </div>
       </div>
 
       {/* 비밀번호 변경 모달 */}
@@ -473,13 +541,21 @@ export default function ProfileEditPage() {
             style={{
               width: 360,
               maxWidth: "90%",
-              background: "#fff",
+              background: "#FFFFFF",
               borderRadius: 12,
               padding: 20,
               boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
             }}
           >
-            <h2 style={{ fontSize: 18, margin: "0 0 12px" }}>비밀번호 변경</h2>
+            <h2
+              style={{
+                fontSize: 18,
+                margin: "0 0 12px",
+                color: "#2563EB",
+              }}
+            >
+              비밀번호 변경
+            </h2>
 
             {pwError && (
               <div
@@ -487,10 +563,10 @@ export default function ProfileEditPage() {
                   marginBottom: 10,
                   padding: 8,
                   borderRadius: 8,
-                  background: "#fee2e2",
-                  border: "1px solid #fecaca",
+                  background: "#FEE2E2",
+                  border: "1px solid #FECACA",
                   fontSize: 12,
-                  color: "#b91c1c",
+                  color: "#B91C1C",
                 }}
               >
                 {pwError}
@@ -502,8 +578,8 @@ export default function ProfileEditPage() {
                   marginBottom: 10,
                   padding: 8,
                   borderRadius: 8,
-                  background: "#dcfce7",
-                  border: "1px solid #bbf7d0",
+                  background: "#DCFCE7",
+                  border: "1px solid #BBF7D0",
                   fontSize: 12,
                   color: "#166534",
                 }}
@@ -513,7 +589,14 @@ export default function ProfileEditPage() {
             )}
 
             <div style={{ marginBottom: 10 }}>
-              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  marginBottom: 4,
+                  color: "#4B5563",
+                }}
+              >
                 새 비밀번호
               </label>
               <TextInput
@@ -524,7 +607,14 @@ export default function ProfileEditPage() {
               />
             </div>
             <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 13, marginBottom: 4 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  marginBottom: 4,
+                  color: "#4B5563",
+                }}
+              >
                 비밀번호 확인
               </label>
               <TextInput
@@ -535,7 +625,14 @@ export default function ProfileEditPage() {
               />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 8 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                marginTop: 8,
+              }}
+            >
               <button
                 type="button"
                 onClick={() => {
@@ -547,8 +644,8 @@ export default function ProfileEditPage() {
                 style={{
                   padding: "8px 14px",
                   borderRadius: 8,
-                  border: "1px solid #ddd",
-                  background: "#f5f5f5",
+                  border: "1px solid #E5E7EB",
+                  background: "#F3F4F6",
                   fontSize: 13,
                   cursor: "pointer",
                 }}
@@ -563,8 +660,8 @@ export default function ProfileEditPage() {
                   padding: "8px 14px",
                   borderRadius: 8,
                   border: "none",
-                  background: "#111",
-                  color: "#fff",
+                  background: "#3B82F6",
+                  color: "#FFFFFF",
                   fontSize: 13,
                   cursor: pwSaving ? "not-allowed" : "pointer",
                 }}
@@ -575,7 +672,7 @@ export default function ProfileEditPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
 
@@ -583,7 +680,16 @@ export default function ProfileEditPage() {
 
 const FormField = ({ label, children }) => (
   <div style={{ marginBottom: 12 }}>
-    <label style={{ display: "block", fontSize: 13, marginBottom: 6 }}>{label}</label>
+    <label
+      style={{
+        display: "block",
+        fontSize: 13,
+        marginBottom: 6,
+        color: "#4B5563",
+      }}
+    >
+      {label}
+    </label>
     {children}
   </div>
 );
@@ -593,23 +699,46 @@ FormField.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const TextInput = (props) => (
-  <input
-    {...props}
-    style={{
-      width: "100%",
-      boxSizing: "border-box",
-      padding: "10px 12px",
-      border: "1px solid #ccc",
-      borderRadius: 8,
-      fontSize: 14,
-      ...(props.style || {}),
-    }}
-  />
-);
+const TextInput = ({ style, onFocus, onBlur, ...props }) => {
+  const baseStyle = {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "10px 12px",
+    border: "1px solid #E8F0FE",
+    borderRadius: 8,
+    fontSize: 14,
+    background: "#FFFFFF",
+    outline: "none",
+    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+    ...style,
+  };
+
+  const handleFocus = (e) => {
+    e.target.style.borderColor = "#3B82F6";
+    e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+    if (onFocus) onFocus(e);
+  };
+
+  const handleBlur = (e) => {
+    e.target.style.borderColor = "#E8F0FE";
+    e.target.style.boxShadow = "none";
+    if (onBlur) onBlur(e);
+  };
+
+  return (
+    <input
+      {...props}
+      style={baseStyle}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    />
+  );
+};
 
 TextInput.propTypes = {
   style: PropTypes.object,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
 };
 
 const PhonePartInput = ({ value, onChange, maxLength, placeholder }) => (
@@ -624,15 +753,26 @@ const PhonePartInput = ({ value, onChange, maxLength, placeholder }) => (
     maxLength={maxLength}
     placeholder={placeholder}
     style={{
-      width: "100%", 
+      width: "100%",
       padding: 8,
       borderRadius: 8,
-      border: "1px solid #ccc",
+      border: "1px solid #E8F0FE",
       boxSizing: "border-box",
+      fontSize: 14,
+      background: "#FFFFFF",
+      outline: "none",
+      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+    }}
+    onFocus={(e) => {
+      e.target.style.borderColor = "#3B82F6";
+      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+    }}
+    onBlur={(e) => {
+      e.target.style.borderColor = "#E8F0FE";
+      e.target.style.boxShadow = "none";
     }}
   />
 );
-
 
 PhonePartInput.propTypes = {
   value: PropTypes.string.isRequired,
@@ -654,9 +794,10 @@ const btnPrimary = {
   marginTop: 20,
   padding: "12px 16px",
   borderRadius: 8,
-  background: "#111",
-  color: "#fff",
+  background: "#3B82F6",
+  color: "#FFFFFF",
   border: "none",
   cursor: "pointer",
   fontSize: 14,
+  fontWeight: 600,
 };

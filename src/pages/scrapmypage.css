@@ -1,18 +1,19 @@
-/* 전체 색상 변수 정의: 페이지에서 공통으로 쓰는 색 팔레트 (흑백 테마) */
+/* 전체 색상 변수 정의: 페이지에서 공통으로 쓰는 색 팔레트 (블루 계열) */
 :root {
-  --deep-teal: #222222;        /* 진한 글자/포인트용 짙은 회색 */
-  --deep-teal-dark: #111111;   /* 더 진한 회색 */
-  --light-yellow: #f3f3f3;     /* 옅은 카드 배경 느낌의 회색 */
-  --pale-yellow: #e7e7e7;      /* 약간 더 진한 회색 */
-  --surface: #f5f5f5;          /* 전체 페이지 바탕색 (신문지 종이 느낌) */
-  --line: #d4d4d4;             /* 테두리/구분선용 회색 */
-  --text-primary: #222222;     /* 기본 글자색 */
-  --text-muted: #666666;       /* 보조 설명 글자색 */
+  --deep-teal: #1e3a8a;        /* 진한 파랑 계열 포인트 */
+  --deep-teal-dark: #111827;   /* 더 진한 네이비 */
+  --light-yellow: #e0ecff;     /* 옅은 블루 카드 배경 */
+  --pale-yellow: #c7ddff;      /* 약간 더 진한 블루 */
+  --surface: #f3f4ff;          /* 전체 페이지 바탕색 */
+  --line: #d0d7ff;             /* 테두리/구분선용 연블루 */
+  --text-primary: #111827;     /* 기본 글자색 (짙은 남색) */
+  --text-muted: #6b7280;       /* 보조 설명 글자색 */
 }
 
 /* 스크랩 마이페이지 전체 레이아웃(배경, 폰트, 패딩 등) */
 .scrap-page {
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui,
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-height: calc(100vh - 140px);
   padding: 12px 32px 60px;
   background: var(--surface);
@@ -22,36 +23,38 @@
 
 /* 상단 히어로 영역 (타이틀 배너) */
 .scrap-page__hero {
-  background: #000;
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
   color: #fff;
   text-align: center;
-  padding: 12px;
-  font-weight: 500;
-  margin-bottom: 18px;
-  border-radius: 0 0 6px 6px;
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.25);
+  padding: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
+  letter-spacing: 0.02em;
 }
 
 /* 상단 알림 배너(성공/에러 공통 스타일) */
 .scrap-page__banner {
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 18px;
   font-weight: 500;
+  font-size: 0.9rem;
 }
 
-/* 성공 알림 배너 색상 스타일 (연한 회색 + 진한 회색 텍스트) */
+/* 성공 알림 배너 색상 스타일 (연한 블루 + 진한 텍스트) */
 .scrap-page__banner--success {
-  background: #f0f0f0;
-  color: #333333;
-  border: 1px solid #d5d5d5;
+  background: #e0f2fe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
-/* 에러 알림 배너 색상 스타일 (조금 더 진한 회색 톤) */
+/* 에러 알림 배너 색상 스타일 (붉은기 살짝 도는 블루톤) */
 .scrap-page__banner--error {
-  background: #e9e9e9;
-  color: #222222;
-  border: 1px solid #c8c8c8;
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 /* 메인 콘텐츠 레이아웃 그리드 (사이드바 + 콘텐츠) */
@@ -67,24 +70,26 @@
   grid-template-columns: 320px minmax(320px, 1.5fr) minmax(320px, 1fr);
 }
 
-/* 사이드바, 기사, 메모 공통 카드 스타일 (흰 배경, 그림자, 테두리) */
+/* 사이드바, 기사, 메모 공통 카드 스타일 */
 .scrap-page__sidebar,
 .scrap-page__article,
 .scrap-page__memo {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e0e0e0;
-  min-height: 260px;   /* 기존 320px 너무 큼 */
+  box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e5e7eb;
+  min-height: 260px;
 }
 
 /* 사이드바 상단 제목 텍스트 스타일 */
 .scrap-page__sidebar-header h2 {
   margin: 0;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   color: var(--text-primary);
+  font-size: 1.1rem;
 }
+
 .scrap-page__sidebar-header h3 {
   margin: 0;
   margin-bottom: 14px;
@@ -92,26 +97,27 @@
   color: var(--text-primary);
 }
 
-/* 사이드바 상단 배지 스타일 (연한 회색 배경) */
+/* 사이드바 상단 배지 스타일 (연한 블루 배경) */
 .scrap-page__sidebar-header p {
   margin: 6px 0 16px;
-  color: #444444;
-  background: #e3e3e3;
+  color: #1e3a8a;
+  background: #e0ecff;
   padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
   display: inline-block;
 }
 
 /* 빈 상태나 안내 문구에 사용하는 박스 스타일 */
 .scrap-page__placeholder {
-  background: #f3f3f3;
+  background: #eff4ff;
   border: 1px dashed var(--line);
-  border-radius: 8px;
-  padding: 24px;
+  border-radius: 10px;
+  padding: 20px;
   text-align: center;
   color: var(--text-muted);
   margin-bottom: 8px;
+  font-size: 0.9rem;
 }
 
 /* 스크랩 리스트 전체 레이아웃 (세로 리스트) */
@@ -126,21 +132,23 @@
 
 /* 개별 스크랩 아이템 카드 스타일 */
 .scrap-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
   padding: 12px;
-  background: #fdfdfd;
+  background: #f9fafb;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease,
+    background-color 0.2s ease, transform 0.15s ease;
 }
 
 /* 선택된(활성) 스크랩 카드 강조 스타일 */
 .scrap-item--active {
-  border-color: #bbbbbb;
-  background: #f2f2f2;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.25);
+  transform: translateY(-1px);
 }
 
 /* 스크랩 카드 본문 버튼 영역 (제목+요약 눌리는 영역) */
@@ -154,8 +162,8 @@
 
 /* 스크랩 제목 텍스트 스타일 */
 .scrap-item__body h4 {
-  margin: 0 0 8px;
-  font-size: 1rem;
+  margin: 0 0 6px;
+  font-size: 0.98rem;
   color: var(--deep-teal-dark);
 }
 
@@ -177,8 +185,8 @@
 
 /* 스크랩 생성일 텍스트 스타일 */
 .scrap-item__date {
-  font-size: 0.8rem;
-  color: #999999;
+  font-size: 0.78rem;
+  color: #9ca3af;
 }
 
 /* 스크랩 액션 아이콘 묶음(평점 버튼, 삭제 버튼) */
@@ -192,23 +200,23 @@
   position: relative;
   border: none;
   background: transparent;
-  color: #111111; 
+  color: #1d4ed8;
   width: 34px;
   height: 34px;
-  border-radius: 50%;
+  border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 1.1rem;
-  box-shadow: none;
-  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease, color 0.15s ease;
 }
 
 /* 아이콘 버튼 hover 시 살짝 떠오르는 효과 */
 .icon-button:hover {
-  background: none;
-  color: #495057;
+  background: #eff6ff;
+  transform: translateY(-1px);
 }
 
 .icon-button .icon-filled,
@@ -233,16 +241,9 @@
   opacity: 1;
 }
 
-/* 두 아이콘을 같은 위치에 겹치게 */
-.icon-button .icon-filled,
-.icon-button .icon-border {
-  position: absolute;
-  transition: opacity 0.15s ease-in-out;
-}
-
-/* 기사 원문 영역 전체 카드 배경색 (옅은 회색) */
+/* 기사 원문 영역 전체 카드 배경색 (옅은 블루) */
 .scrap-page__article {
-  background: #f1f3f5;
+  background: #e5edff;
 }
 
 /* 기사 상단 헤더(제목 + 원문보기 링크) 레이아웃 */
@@ -257,27 +258,33 @@
 .article-panel__header h3 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 /* 기사 헤더 오른쪽 원문보기 링크 스타일 */
 .article-panel__header a {
-  color: #111111;
+  color: #1d4ed8;
   font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.article-panel__header a:hover {
   text-decoration: underline;
 }
 
 /* 기사 내용 박스(제목+요약) 스타일 */
 .article-panel {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
   padding: 18px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
 }
 
 /* 기사 내용의 제목 스타일 */
 .article-panel h4 {
   margin-top: 0;
+  font-size: 1rem;
 }
 
 /* 기사 내용의 본문(요약) 스타일 */
@@ -293,9 +300,9 @@
 /* 기사 원문 박스 (신문본문 느낌) */
 .article-panel__original {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 16px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
 }
 
 .article-panel__original h5 {
@@ -313,13 +320,13 @@
   margin-bottom: 0;
 }
 
-/* 메모 영역 전체 카드 배경 (흰색) */
+/* 메모 영역 전체 카드 배경 */
 .scrap-page__memo {
   background: #ffffff;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
   min-height: 320px;
   display: flex;
   flex-direction: column;
@@ -327,10 +334,10 @@
 
 .scrap-page__memo h2 {
   margin: 0;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   color: var(--text-primary);
+  font-size: 1.1rem;
 }
-
 
 /* 메모 상단 부제목 */
 .memo-subtitle {
@@ -357,10 +364,10 @@
 
 /* 개별 메모 카드 박스 스타일 */
 .memo-card {
-  background: #ffffff;
-  border-radius: 6px;
+  background: #f9fafb;
+  border-radius: 10px;
   padding: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.4);
 }
 
 /* 메모 내용 텍스트 스타일 */
@@ -371,20 +378,24 @@
 
 /* 클릭 가능한 기사별 메모 제목 */
 .memo-section__title--clickable {
-  cursor: pointer;          /* 손 모양 */
-  user-select: none;        /* 드래그 안 되게 */
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* 마우스 올렸을 때 살짝 강조 */
 .memo-section__title--clickable:hover {
   text-decoration: underline;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 /* 기사별 메모 블럭 안의 뉴스 제목 스타일 */
 .memo-card__scrap-title {
-  font-weight: 600;  
-  margin-bottom: 4px;    
+  font-weight: 600;
+  margin-bottom: 4px;
   color: var(--deep-teal);
 }
 
@@ -392,7 +403,7 @@
 .memo-card__meta {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
@@ -400,9 +411,14 @@
 .memo-card__meta button {
   border: none;
   background: transparent;
-  color: var(--deep-teal-dark);
+  color: #2563eb;
   cursor: pointer;
   margin-left: 6px;
+  font-size: 0.8rem;
+}
+
+.memo-card__meta button:hover {
+  text-decoration: underline;
 }
 
 /* 메모 수정 모드에서 쓰이는 버튼 영역 레이아웃 */
@@ -423,12 +439,13 @@
   width: 100%;
   background: #ffffff;
   border: 1px solid #d0d0d0;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px;
   resize: vertical;
   min-height: 100px;
   box-sizing: border-box;
   font-family: inherit;
+  font-size: 0.9rem;
 }
 
 /* 메모 작성/수정 공통 버튼 스타일 */
@@ -437,20 +454,21 @@
   align-self: flex-end;
   padding: 8px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
-/* 검정 버튼 (작성/저장) */
+/* 파란 버튼 (작성/저장) */
 .memo-btn--primary {
-  background: #222222;
+  background: #2563eb;
   color: #ffffff;
 }
 
 /* 연회색 버튼 (취소 등) */
 .memo-btn--secondary {
-  background: #f0f0f0;
+  background: #e5e7eb;
   color: var(--text-muted);
 }
 
@@ -468,7 +486,7 @@
 .rating-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(15, 23, 42, 0.55);
 }
 
 /* 모달 내용 영역 */
@@ -476,9 +494,9 @@
   position: relative;
   width: min(480px, 92vw);
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.45);
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -525,14 +543,14 @@
   background: transparent;
   cursor: pointer;
   padding: 0;
-  font-size: 1.6rem; 
+  font-size: 1.7rem;
   line-height: 1;
-  color: #cccccc; 
+  color: #d1d5db;
 }
 
 /* 선택된(활성) 별 색 */
 .star-button--active {
-  color: #495057;    /* 노란색 계열 */
+  color: #f59e0b; /* 노란색 */
 }
 
 /* 별점 숫자 */
@@ -541,7 +559,6 @@
   font-size: 0.9rem;
   color: var(--text-muted);
 }
-
 
 /* 모달 본문(입력 폼) */
 .rating-modal__body {
@@ -561,7 +578,7 @@
 .rating-modal__body input,
 .rating-modal__body textarea {
   border: 1px solid #cfd0d2;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 10px 12px;
   font-family: inherit;
   font-size: 0.95rem;
@@ -581,19 +598,20 @@
 
 .rating-modal__footer button {
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   padding: 8px 18px;
   font-weight: 600;
   cursor: pointer;
+  font-size: 0.9rem;
 }
 
-.rating-modal__footer button[type="button"] {
-  background: #f0f0f0;
+.rating-modal__footer button[type='button'] {
+  background: #e5e7eb;
   color: var(--text-muted);
 }
 
-.rating-modal__footer button[type="submit"] {
-  background: #222222;
+.rating-modal__footer button[type='submit'] {
+  background: #2563eb;
   color: #ffffff;
 }
 
