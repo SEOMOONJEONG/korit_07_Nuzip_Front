@@ -1,0 +1,257 @@
+.search-category-section {
+  width: 100%;
+  background-color: #dcebff;
+  padding: 32px 0 40px;
+}
+
+.search-category-wrapper {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  max-width: 960px;
+}
+
+.search-logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.search-logo {
+  display: block;
+  height: 60px;
+  width: auto;
+}
+
+.search-form {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .search-category-section {
+    padding: 24px 0 28px;
+  }
+
+  .search-category-wrapper {
+    padding: 0 16px;
+    gap: 16px;
+  }
+
+  .search-shell {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .search-logo-link {
+    justify-content: flex-start;
+  }
+
+  .search-logo {
+    height: 48px;
+  }
+}
+
+.search-input {
+  flex: 1;
+  height: 54px;
+  padding: 0 16px;
+  border: 1px solid #d1d5db;
+  background-color: #fdf7ef;
+  border-radius: 12px;
+  font-size: 16px;
+  color: #1f2937;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.4);
+}
+
+.search-button {
+  width: 96px;
+  height: 54px;
+  border-radius: 12px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-button:hover {
+  background: #1d4ed8;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 960px;
+  padding: 0;
+  margin: 0 auto;
+  border: none;
+}
+
+.category-item {
+  font-size: 15px;
+  color: #6b7280;
+  cursor: pointer;
+  position: relative;
+  padding-bottom: 4px;
+  transition: color 0.2s ease;
+}
+
+.category-item.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.category-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: #2563eb;
+  border-radius: 999px;
+}
+
+.news-card,
+.all-news {
+  width: min(1000px, 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.news-card {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s ease;
+}
+
+.news-card:hover {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+.news-thumbnail {
+  width: 220px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: #f3f4f6;
+}
+
+.news-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.news-title {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+  line-height: 1.35;
+}
+
+.news-summary {
+  margin: 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.news-keywords {
+  font-size: 13px;
+}
+
+.keyword {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: #1d4ed8;
+  background: #e0e7ff;
+  border-radius: 999px;
+}
+
+.news-date,
+.user-news-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.news-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.news-footer .scrap-action-buttons {
+  margin-top: 0;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2937;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

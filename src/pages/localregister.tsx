@@ -1,48 +1,69 @@
-// 폼 회원가입 1단계
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type CSSProperties,
+  type HTMLAttributes,
+  type InputHTMLAttributes,
+  type LabelHTMLAttributes,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   api,
   isValidEmail,
   sendEmailVerification,
   confirmEmailVerification,
-} from "../api/nuzipclientapi";
-import NuzipLogo from "./Nuzip_logo2.png"; // 🔹 로고 이미지 추가
+} from '../api/nuzipclientapi';
+import NuzipLogo from './Nuzip_logo2.png'; // 🔹 로고 이미지 추가
+
+type LocalRegisterForm = {
+  userId: string;
+  password: string;
+  username: string;
+  birthDate: string;
+};
+
+type PhoneParts = {
+  first: string;
+  second: string;
+  third: string;
+};
 
 export default function LocalRegister() {
   const nav = useNavigate();
-  const [form, setForm] = useState({
-    userId: "",
-    password: "",
-    username: "",
-    birthDate: "",
+  const [form, setForm] = useState<LocalRegisterForm>({
+    userId: '',
+    password: '',
+    username: '',
+    birthDate: '',
   });
-  const [phoneParts, setPhoneParts] = useState({
-    first: "",
-    second: "",
-    third: "",
+  const [phoneParts, setPhoneParts] = useState<PhoneParts>({
+    first: '',
+    second: '',
+    third: '',
   });
-  const [err, setErr] = useState("");
+  const [err, setErr] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verificationNotice, setVerificationNotice] = useState("");
-  const [verificationError, setVerificationError] = useState("");
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationNotice, setVerificationNotice] = useState('');
+  const [verificationError, setVerificationError] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [checkingCode, setCheckingCode] = useState(false);
 
   // signupDraft에 일부 값 저장하는 헬퍼
-  const persistDraft = (partial) => {
-    const raw = sessionStorage.getItem("signupDraft");
-    let base = {};
+  const persistDraft = (partial: Record<string, unknown>) => {
+    const raw = sessionStorage.getItem('signupDraft');
+    let base: Record<string, unknown> = {};
     if (raw) {
       try {
         base = JSON.parse(raw) || {};
       } catch (e) {
-        console.warn("signupDraft 파싱 실패, 초기화합니다.", e);
+        console.warn('signupDraft 파싱 실패, 초기화합니다.', e);
       }
     }
     sessionStorage.setItem(
-      "signupDraft",
+      'signupDraft',
       JSON.stringify({
         ...base,
         ...partial,
@@ -50,26 +71,28 @@ export default function LocalRegister() {
     );
   };
 
-  const onChange = (e) => {
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const nextValue = name === "userId" ? value.trim().toLowerCase() : value;
-    setForm((f) => ({ ...f, [name]: nextValue }));
-    if (name === "userId") {
+    const fieldName = name as keyof LocalRegisterForm;
+    const nextValue = fieldName === 'userId' ? value.trim().toLowerCase() : value;
+    setForm((f) => ({ ...f, [fieldName]: nextValue }));
+    if (fieldName === 'userId') {
       setEmailVerified(false);
-      setVerificationCode("");
-      setVerificationNotice("");
-      setVerificationError("");
+      setVerificationCode('');
+      setVerificationNotice('');
+      setVerificationError('');
     }
   };
 
-  const onPhoneChange = (part) => (e) => {
-    const digits = e.target.value.replace(/\D/g, "");
-    const limit = part === "first" ? 3 : 4;
+  const onPhoneChange =
+    (part: keyof PhoneParts) => (e: ChangeEvent<HTMLInputElement>) => {
+      const digits = e.target.value.replace(/\D/g, '');
+      const limit = part === 'first' ? 3 : 4;
     setPhoneParts((prev) => ({
       ...prev,
       [part]: digits.slice(0, limit),
     }));
-  };
+    };
 
   useEffect(() => {
     sessionStorage.removeItem("signupDraft");
@@ -145,7 +168,7 @@ export default function LocalRegister() {
     }
   };
 
-  const goNext = async (e) => {
+  const goNext = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErr("");
 
@@ -415,99 +438,111 @@ export default function LocalRegister() {
   );
 }
 
-const Label = (p) => (
+const Label = ({ style, ...props }: LabelHTMLAttributes<HTMLLabelElement>) => (
   <label
+    {...props}
     style={{
-      display: "block",
+      display: 'block',
       fontSize: 13,
       marginBottom: 6,
-      color: "#4B5563",
+      color: '#4B5563',
+      ...style,
     }}
-    {...p}
   />
 );
 
-const Input = (p) => (
+const Input = ({
+  style,
+  onFocus,
+  onBlur,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    {...p}
+    {...props}
     style={{
-      width: "100%",
-      boxSizing: "border-box",
-      padding: "10px 12px",
-      border: "1px solid #E8F0FE",
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '10px 12px',
+      border: '1px solid #E8F0FE',
       borderRadius: 8,
       marginBottom: 12,
       fontSize: 14,
-      outline: "none",
-      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-      ...(p.style || {}),
+      outline: 'none',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+      ...style,
     }}
     onFocus={(e) => {
-      p.onFocus && p.onFocus(e);
-      e.target.style.borderColor = "#3B82F6";
-      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+      onFocus?.(e);
+      e.target.style.borderColor = '#3B82F6';
+      e.target.style.boxShadow = '0 0 0 1px #3B82F6';
     }}
     onBlur={(e) => {
-      p.onBlur && p.onBlur(e);
-      e.target.style.borderColor = "#E8F0FE";
-      e.target.style.boxShadow = "none";
+      onBlur?.(e);
+      e.target.style.borderColor = '#E8F0FE';
+      e.target.style.boxShadow = 'none';
     }}
   />
 );
 
-const PhoneField = (p) => (
+const PhoneField = ({ style, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
+    {...props}
     style={{
-      display: "grid",
-      gridTemplateColumns: "1fr auto 1fr auto 1fr",
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr auto 1fr',
       columnGap: 8,
-      alignItems: "center",
+      alignItems: 'center',
       marginBottom: 12,
-      width: "100%",
-      boxSizing: "border-box",
+      width: '100%',
+      boxSizing: 'border-box',
+      ...style,
     }}
-    {...p}
   />
 );
 
-const PhoneInput = (p) => (
+const PhoneInput = ({
+  style,
+  onFocus,
+  onBlur,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) => (
   <input
-    {...p}
+    {...props}
     inputMode="numeric"
     pattern="[0-9]*"
     style={{
-      width: "100%",
-      padding: "8px 10px",
-      border: "1px solid #E8F0FE",
+      width: '100%',
+      padding: '8px 10px',
+      border: '1px solid #E8F0FE',
       borderRadius: 8,
-      boxSizing: "border-box",
+      boxSizing: 'border-box',
       fontSize: 14,
-      outline: "none",
-      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-      ...(p.style || {}),
+      outline: 'none',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+      ...style,
     }}
     onFocus={(e) => {
-      p.onFocus && p.onFocus(e);
-      e.target.style.borderColor = "#3B82F6";
-      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+      onFocus?.(e);
+      e.target.style.borderColor = '#3B82F6';
+      e.target.style.boxShadow = '0 0 0 1px #3B82F6';
     }}
     onBlur={(e) => {
-      p.onBlur && p.onBlur(e);
-      e.target.style.borderColor = "#E8F0FE";
-      e.target.style.boxShadow = "none";
+      onBlur?.(e);
+      e.target.style.borderColor = '#E8F0FE';
+      e.target.style.boxShadow = 'none';
     }}
   />
 );
 
-const btnPrimary = {
-  width: "100%",
+const btnPrimary: CSSProperties = {
+  width: '100%',
   marginTop: 16,
-  padding: "13px 16px",
+  padding: '13px 16px',
   borderRadius: 8,
-  background: "#3B82F6",
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
+  background: '#3B82F6',
+  color: '#fff',
+  border: 'none',
+  cursor: 'pointer',
   fontSize: 15,
   fontWeight: 600,
 };

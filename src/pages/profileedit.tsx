@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import PropTypes from "prop-types";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type CSSProperties,
+  type InputHTMLAttributes,
+  type FocusEvent,
+  type ReactNode,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 
 const CATEGORY_OPTIONS = [
   { key: "POLITICS", label: "정치" },
@@ -15,6 +23,26 @@ const CATEGORY_OPTIONS = [
   { key: "SPORTS", label: "스포츠" },
 ];
 
+type CategoryKey = (typeof CATEGORY_OPTIONS)[number]['key'];
+
+type PhoneParts = {
+  first: string;
+  second: string;
+  third: string;
+};
+
+type FormFieldProps = {
+  label: string;
+  children: ReactNode;
+};
+
+type PhonePartInputProps = {
+  value: string;
+  onChange: (value: string) => void;
+  maxLength: number;
+  placeholder?: string;
+};
+
 export default function ProfileEditPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -23,11 +51,11 @@ export default function ProfileEditPage() {
   const [error, setError] = useState("");
   const [okMsg, setOkMsg] = useState("");
 
-  const [provider, setProvider] = useState("LOCAL");
+  const [provider, setProvider] = useState('LOCAL');
   const [username, setUsername] = useState("");
-  const [phoneParts, setPhoneParts] = useState({ first: "", second: "", third: "" });
+  const [phoneParts, setPhoneParts] = useState<PhoneParts>({ first: '', second: '', third: '' });
   const [birthDate, setBirthDate] = useState("");
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<CategoryKey[]>([]);
 
   // 🔹 비밀번호 모달 상태
   const [pwModalOpen, setPwModalOpen] = useState(false);
@@ -96,18 +124,18 @@ export default function ProfileEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const authHeaders = (withReverify = false) => {
-    const h = {
-      "Content-Type": "application/json",
+  const authHeaders = (withReverify = false): Record<string, string> => {
+    const h: Record<string, string> = {
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${rawToken}`,
     };
-    if (withReverify && provider === "LOCAL") {
-      h["X-Reverify-Token"] = reverifyToken;
+    if (withReverify && provider === 'LOCAL') {
+      h['X-Reverify-Token'] = reverifyToken;
     }
     return h;
   };
 
-  const toggleCategory = (c) => {
+  const toggleCategory = (c: CategoryKey) => {
     setCategories((prev) => {
       if (prev.includes(c)) return prev.filter((x) => x !== c);
       if (prev.length >= 3) {
@@ -118,9 +146,9 @@ export default function ProfileEditPage() {
     });
   };
 
-  const handlePhoneChange = (part, value) => {
-    const limit = part === "first" ? 3 : 4;
-    const digits = value.replace(/\D/g, "");
+  const handlePhoneChange = (part: keyof PhoneParts, value: string) => {
+    const limit = part === 'first' ? 3 : 4;
+    const digits = value.replace(/\D/g, '');
     setPhoneParts((prev) => ({
       ...prev,
       [part]: digits.slice(0, limit),
@@ -128,7 +156,7 @@ export default function ProfileEditPage() {
   };
 
   // 🔹 프로필/카테고리 저장
-  const onSubmit = async (e) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setOkMsg("");
@@ -678,7 +706,7 @@ export default function ProfileEditPage() {
 
 /* ===== 공통 컴포넌트들 ===== */
 
-const FormField = ({ label, children }) => (
+const FormField = ({ label, children }: FormFieldProps) => (
   <div style={{ marginBottom: 12 }}>
     <label
       style={{
@@ -693,36 +721,35 @@ const FormField = ({ label, children }) => (
     {children}
   </div>
 );
-
-FormField.propTypes = {
-  label: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-};
-
-const TextInput = ({ style, onFocus, onBlur, ...props }) => {
-  const baseStyle = {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "10px 12px",
-    border: "1px solid #E8F0FE",
+const TextInput = ({
+  style,
+  onFocus,
+  onBlur,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) => {
+  const baseStyle: CSSProperties = {
+    width: '100%',
+    boxSizing: 'border-box',
+    padding: '10px 12px',
+    border: '1px solid #E8F0FE',
     borderRadius: 8,
     fontSize: 14,
-    background: "#FFFFFF",
-    outline: "none",
-    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+    background: '#FFFFFF',
+    outline: 'none',
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
     ...style,
   };
 
-  const handleFocus = (e) => {
-    e.target.style.borderColor = "#3B82F6";
-    e.target.style.boxShadow = "0 0 0 1px #3B82F6";
-    if (onFocus) onFocus(e);
+  const handleFocus = (e: FocusEvent<HTMLInputElement>) => {
+    e.target.style.borderColor = '#3B82F6';
+    e.target.style.boxShadow = '0 0 0 1px #3B82F6';
+    onFocus?.(e);
   };
 
-  const handleBlur = (e) => {
-    e.target.style.borderColor = "#E8F0FE";
-    e.target.style.boxShadow = "none";
-    if (onBlur) onBlur(e);
+  const handleBlur = (e: FocusEvent<HTMLInputElement>) => {
+    e.target.style.borderColor = '#E8F0FE';
+    e.target.style.boxShadow = 'none';
+    onBlur?.(e);
   };
 
   return (
@@ -735,17 +762,11 @@ const TextInput = ({ style, onFocus, onBlur, ...props }) => {
   );
 };
 
-TextInput.propTypes = {
-  style: PropTypes.object,
-  onFocus: PropTypes.func,
-  onBlur: PropTypes.func,
-};
-
-const PhonePartInput = ({ value, onChange, maxLength, placeholder }) => (
+const PhonePartInput = ({ value, onChange, maxLength, placeholder }: PhonePartInputProps) => (
   <input
     value={value}
     onChange={(e) => {
-      const digits = e.target.value.replace(/\D/g, "");
+      const digits = e.target.value.replace(/\D/g, '');
       onChange(digits.slice(0, maxLength));
     }}
     inputMode="numeric"
@@ -753,33 +774,26 @@ const PhonePartInput = ({ value, onChange, maxLength, placeholder }) => (
     maxLength={maxLength}
     placeholder={placeholder}
     style={{
-      width: "100%",
+      width: '100%',
       padding: 8,
       borderRadius: 8,
-      border: "1px solid #E8F0FE",
-      boxSizing: "border-box",
+      border: '1px solid #E8F0FE',
+      boxSizing: 'border-box',
       fontSize: 14,
-      background: "#FFFFFF",
-      outline: "none",
-      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+      background: '#FFFFFF',
+      outline: 'none',
+      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
     }}
     onFocus={(e) => {
-      e.target.style.borderColor = "#3B82F6";
-      e.target.style.boxShadow = "0 0 0 1px #3B82F6";
+      e.target.style.borderColor = '#3B82F6';
+      e.target.style.boxShadow = '0 0 0 1px #3B82F6';
     }}
     onBlur={(e) => {
-      e.target.style.borderColor = "#E8F0FE";
-      e.target.style.boxShadow = "none";
+      e.target.style.borderColor = '#E8F0FE';
+      e.target.style.boxShadow = 'none';
     }}
   />
 );
-
-PhonePartInput.propTypes = {
-  value: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
-  maxLength: PropTypes.number.isRequired,
-  placeholder: PropTypes.string,
-};
 
 async function safeJson(res) {
   try {
@@ -789,8 +803,8 @@ async function safeJson(res) {
   }
 }
 
-const btnPrimary = {
-  width: "100%",
+const btnPrimary: CSSProperties = {
+  width: '100%',
   marginTop: 20,
   padding: "12px 16px",
   borderRadius: 8,

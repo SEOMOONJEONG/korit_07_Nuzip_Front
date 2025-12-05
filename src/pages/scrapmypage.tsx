@@ -7,11 +7,13 @@ import {
   removeScrap,
   submitRating,
   updateMemo as updateMemoApi,
+  type ScrapDto,
 } from '../api/nuzipclientapi';
+import { withCachedScrapImage } from '../utils/scrap';
 import './scrapmypage.css';
+import DefaultThumbnail from './Nuzip_logo.png';
 
 import BookmarkIcon from '@mui/icons-material/Bookmark';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarIcon from '@mui/icons-material/Star';
@@ -30,22 +32,6 @@ const resolveUseDummyFlag = () => {
 
 const USE_DUMMY_DATA = resolveUseDummyFlag();
 
-// 로컬 스토리지용 마이페이지 메모(마이페이지 전용 메모)
-const PAGE_MEMO_STORAGE_KEY = 'scrap-page__personal-memos';
-
-const loadStoredPageMemos = () => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = window.localStorage.getItem(PAGE_MEMO_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('개인 메모 로드 실패', err);
-    return [];
-  }
-};
-
 // 더미 데이터
 const DUMMY_SCRAPS = [
   {
@@ -57,6 +43,7 @@ const DUMMY_SCRAPS = [
       '연방준비제도(Fed)가 네 차례 연속으로 기준금리를 동결하면서 미국 국채 금리가 급등락했고, 이에 연동된 원·달러 환율도 장중 1,360원대 중후반까지 치솟았습니다. 금융당국은 단기 변동성은 확대되겠지만 연말로 갈수록 수급 요인이 완화될 것으로 보고 있습니다.\n\n국내 증시는 은행·보험 등 금리 수혜 업종이 방어력을 보였고, 2차전지와 성장주에는 차익 매물이 출회됐습니다. 외국인 투자자는 선물 시장에서 헷지 비중을 늘렸지만, 현물에선 업종별로 엇갈린 매매를 이어가며 관망세를 택했습니다.\n\n전문가들은 잭슨홀 미팅 이후 나올 추가 힌트와 12월 점도표를 동시에 확인해야 방향성이 잡힐 것이라며, 가계대출 변동금리 차주의 원리금 부담을 다시 한번 점검할 시기라고 조언했습니다.',
     createdAt: '2025-11-28T09:00:00',
     url: 'https://news.example.com/economy-rate',
+    imageUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=640&q=80&auto=format',
     memos: [
       {
         id: 101,
@@ -84,6 +71,7 @@ const DUMMY_SCRAPS = [
       '유럽 의회는 생성형 AI 모델에 대한 투명성 의무를 명문화하면서 파라미터 규모가 일정 기준을 넘는 모델에 대해선 데이터 셋 공개와 위험 평가 보고서를 의무화했습니다. 이는 챗봇 서비스뿐 아니라 이미지·음성 합성 서비스에도 동일하게 적용됩니다.\n\n구글, 메타, 오픈AI 등 글로벌 사업자들은 이미 개별 회원국과의 협의 채널을 가동했고, 한국 정부도 이번 법안의 세부 시행령을 면밀히 모니터링하며 국내 기업이 불이익을 받지 않도록 대응책을 마련 중입니다.\n\n국내 스타트업 업계에서는 개인정보 비식별 조치와 저작권 관리 툴 수요가 급증할 것으로 예상하고 있으며, 일부 기업은 유럽 현지 법률 자문단을 꾸려 출시 일정 조정을 검토하고 있습니다.',
     createdAt: '2025-11-27T21:30:00',
     url: 'https://news.example.com/ai-regulation',
+    imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=640&q=80&auto=format',
     memos: [
       {
         id: 102,
@@ -106,14 +94,17 @@ const DUMMY_SCRAPS = [
       '2030 세대는 출근 준비나 이동 시간에 1~3분 내외로 요약된 뉴스레터와 숏폼 영상을 소비하는 경향이 뚜렷하게 나타났습니다. 데이터 분석 기업 인사이트랩은 전체 응답자의 62%가 긴 기사를 끝까지 읽지 않는다고 조사했습니다.\n\n대신 실시간 이슈를 빠르게 파악한 뒤 관심 분야는 블로그나 포럼에서 추가 정보를 찾는 깊게 읽기 방식이 확산되고 있습니다. 알고리즘이 추천한 콘텐츠에만 의존하지 않기 위해 큐레이션 기반 뉴스 서비스를 이용한다는 답변도 늘었습니다.\n\n미디어 업계는 맞춤형 알림과 인터랙티브 카드 뉴스 등 사용자 참여형 포맷을 확대하면서, 뉴스 소비 데이터를 다시 제작 과정에 반영하는 순환 구조를 실험하고 있습니다.',
     createdAt: '2025-11-26T13:20:00',
     url: 'https://news.example.com/news-consumption',
+    imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=640&q=80&auto=format',
     memos: [],
   },
 ];
 
 export default function ScrapMyPage() {
   // 초기값을 더미 데이터로 설정
-  const initialScraps = USE_DUMMY_DATA ? DUMMY_SCRAPS : [];
-  const [scraps, setScraps] = useState(initialScraps);
+  const initialScraps = (USE_DUMMY_DATA ? DUMMY_SCRAPS : []) as ScrapDto[];
+  const [scraps, setScraps] = useState<ScrapDto[]>(
+    initialScraps.map((scrap) => withCachedScrapImage(scrap)),
+  );
   const [selectedScrapId, setSelectedScrapId] = useState(
     () => (USE_DUMMY_DATA ? initialScraps[0]?.id ?? null : null),
   );
@@ -127,13 +118,8 @@ export default function ScrapMyPage() {
   const [editingContent, setEditingContent] = useState('');
   const [editingScrapId, setEditingScrapId] = useState(null);
 
-  // 기사별 메모, 마이페이지 메모 접힘/펼침
-  const [articleMemosOpen, setArticleMemosOpen] = useState(true);
-  const [pageMemosOpen, setPageMemosOpen] = useState(true);
-
-  // 마이페이지 전용 메모 (localStorage)
-  const [pageMemos, setPageMemos] = useState(() => loadStoredPageMemos());
-  const [pageMemoDraft, setPageMemoDraft] = useState('');
+// 기사별 메모 접힘/펼침
+const [articleMemosOpen, setArticleMemosOpen] = useState(true);
 
   // 평점 모달
   const [ratingModal, setRatingModal] = useState({
@@ -195,17 +181,6 @@ export default function ScrapMyPage() {
     return () => clearTimeout(timer);
   }, [banner]);
 
-  // 마이페이지 메모 localStorage 저장
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    try {
-      window.localStorage.setItem(PAGE_MEMO_STORAGE_KEY, JSON.stringify(pageMemos));
-    } catch (err) {
-      console.warn('개인 메모 저장 실패', err);
-    }
-    return undefined;
-  }, [pageMemos]);
-
   // 라우터 이동 시 상태 초기화
   useEffect(() => {
     if (locationKeyRef.current === location.key) return;
@@ -239,7 +214,10 @@ export default function ScrapMyPage() {
     setLoading(true);
     try {
       const { data } = await getMyScraps();
-      setScraps(data);
+      const normalized = (Array.isArray(data) ? data : []).map((scrap) =>
+        withCachedScrapImage(scrap),
+      );
+      setScraps(normalized);
       setSelectedScrapId((prevId) => {
         if (!data.length) return null;
         if (prevId && data.some((item) => item.id === prevId)) {
@@ -458,27 +436,6 @@ export default function ScrapMyPage() {
     }
   };
 
-  // 마이페이지 메모 추가
-  const handleAddPageMemo = () => {
-    if (!pageMemoDraft.trim()) return;
-    const now = new Date().toISOString();
-
-    setPageMemos((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        content: pageMemoDraft.trim(),
-        createdAt: now,
-      },
-    ]);
-    setPageMemoDraft('');
-  };
-
-  // 마이페이지 메모 삭제
-  const handleDeletePageMemo = (id) => {
-    setPageMemos((prev) => prev.filter((memo) => memo.id !== id));
-  };
-
   // 평점 전송
   const handleSubmitRating = async (event) => {
     event?.preventDefault();
@@ -542,8 +499,6 @@ export default function ScrapMyPage() {
 
   return (
     <div className="scrap-page">
-      <section className="scrap-page__hero">마이페이지</section>
-
       {banner && (
         <div className={`scrap-page__banner scrap-page__banner--${banner.type}`}>
           {banner.text}
@@ -575,31 +530,59 @@ export default function ScrapMyPage() {
                     className="scrap-item__body"
                     onClick={() => handleSelectScrap(scrap.id)}
                   >
-                    <h4>{scrap.title}</h4>
-                    <p>{scrap.summary || '요약이 없습니다.'}</p>
+                    <div className="scrap-item__preview">
+                      <img
+                        src={scrap.imageUrl || DefaultThumbnail}
+                        alt={scrap.title}
+                        className="scrap-item__thumbnail"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="scrap-item__text">
+                      <h4>{scrap.title}</h4>
+                      <p>{scrap.summary || '요약이 없습니다.'}</p>
+                    </div>
                   </button>
                   <div className="scrap-item__footer">
                     <span className="scrap-item__date">{formatDate(scrap.createdAt)}</span>
                     <div className="scrap-item__actions">
                       <button
                         type="button"
-                        className="icon-button"
+                        className="icon-button icon-button--active"
                         title="스크랩 삭제"
                         onClick={() => handleDeleteScrap(scrap.id)}
                       >
-                        <BookmarkIcon className="icon-filled" fontSize="small" />
-                        <BookmarkBorderIcon className="icon-border" fontSize="small" />
+                        <BookmarkIcon fontSize="small" />
                       </button>
 
-                      <button
-                        type="button"
-                        className="icon-button"
-                        title="평점 남기기"
-                        onClick={() => openRatingModal(scrap)}
-                      >
-                        <StarRateIcon className="icon-filled" fontSize="small" />
-                        <StarBorderIcon className="icon-border" fontSize="small" />
-                      </button>
+                      {(() => {
+                        const ratingActive =
+                          ratingModal.open && ratingModal.scrap?.id === scrap.id;
+                        const ratingButtonClass = [
+                          'icon-button',
+                          'rating-button',
+                          ratingActive ? 'rating-button--active' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ');
+                        return (
+                          <button
+                            type="button"
+                            className={ratingButtonClass}
+                            title="평점 남기기"
+                            onClick={() => openRatingModal(scrap)}
+                          >
+                            <StarBorderIcon
+                              className="rating-icon rating-icon--outline"
+                              fontSize="small"
+                            />
+                            <StarRateIcon
+                              className="rating-icon rating-icon--filled"
+                              fontSize="small"
+                            />
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 </li>
@@ -613,33 +596,32 @@ export default function ScrapMyPage() {
           <section className="scrap-page__article">
             <header className="article-panel__header">
               <h3>뉴스 기사의 원문내용</h3>
-              {selectedScrap.url && (
-                <a href={selectedScrap.url} target="_blank" rel="noreferrer">
-                  원문 보기
-                </a>
-              )}
             </header>
             <article className="article-panel">
               <h4>{selectedScrap.title}</h4>
+              <div className="article-panel__media">
+                <img
+                  src={selectedScrap.imageUrl || DefaultThumbnail}
+                  alt={selectedScrap.title}
+                  className="article-panel__thumbnail"
+                  loading="lazy"
+                />
+              </div>
               {selectedScrap.summary ? (
                 <p className="article-panel__summary">{selectedScrap.summary}</p>
               ) : (
                 <p className="article-panel__summary">요약 정보가 없습니다.</p>
               )}
-              <div className="article-panel__original">
-                <h5>전체 원문</h5>
-                {selectedScrap.article ? (
-                  selectedScrap.article
-                    .replace(/\r/g, '')
-                    .split('\n\n')
-                    .filter((paragraph) => paragraph.trim().length > 0)
-                    .map((paragraph, index) => (
-                      <p key={`article-paragraph-${index}`}>{paragraph.trim()}</p>
-                    ))
-                ) : (
-                  <p>원문을 불러올 수 없습니다.</p>
-                )}
-              </div>
+              {selectedScrap.url && (
+                <a
+                  className="article-panel__link"
+                  href={selectedScrap.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  원문 보기
+                </a>
+              )}
             </article>
           </section>
         )}
@@ -666,7 +648,7 @@ export default function ScrapMyPage() {
                             className="memo-textarea"
                             value={editingContent}
                             onChange={(e) => setEditingContent(e.target.value)}
-                            rows="3"
+                            rows={3}
                           />
                           <div className="memo-card__actions">
                             <button
@@ -717,7 +699,7 @@ export default function ScrapMyPage() {
               <div className="memo-form">
                 <textarea
                   className="memo-textarea"
-                  rows="4"
+                  rows={4}
                   placeholder="이 기사에 대한 메모를 남겨보세요."
                   value={memoDraft}
                   onChange={(e) => setMemoDraft(e.target.value)}
@@ -764,61 +746,6 @@ export default function ScrapMyPage() {
                 )}
               </div>
 
-              {/* 2) 마이페이지 전용 메모 */}
-              <div className="memo-section memo-section--page">
-                <h4
-                  className="memo-section__title memo-section__title--clickable"
-                  onClick={() => setPageMemosOpen((prev) => !prev)}
-                >
-                  마이페이지 메모
-                </h4>
-
-                {pageMemosOpen && (
-                  <div className="memo-list">
-                    {pageMemos.length === 0 ? (
-                      <p className="scrap-page__placeholder">
-                        마이페이지에서만 볼 수 있는 개인 메모를 남겨보세요.
-                      </p>
-                    ) : (
-                      pageMemos.map((memo) => (
-                        <div className="memo-card" key={memo.id}>
-                          <p>{memo.content}</p>
-                          <div className="memo-card__meta">
-                            <span>{formatDate(memo.createdAt)}</span>
-                            <div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeletePageMemo(memo.id)}
-                              >
-                                삭제
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-
-                {/* 마이페이지 메모 입력창 */}
-                <div className="memo-form">
-                  <textarea
-                    className="memo-textarea"
-                    rows="4"
-                    placeholder="메모를 남겨보세요."
-                    value={pageMemoDraft}
-                    onChange={(e) => setPageMemoDraft(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="memo-btn memo-btn--primary"
-                    onClick={handleAddPageMemo}
-                    disabled={!pageMemoDraft.trim()}
-                  >
-                    메모 추가
-                  </button>
-                </div>
-              </div>
             </>
           )}
         </section>
@@ -872,7 +799,7 @@ export default function ScrapMyPage() {
                 AI 요약 피드백
                 <textarea
                   className="memo-textarea"
-                  rows="4"
+                  rows={4}
                   placeholder="AI에게 전달할 의견을 입력해주세요."
                   value={ratingModal.feedback}
                   onChange={(e) =>

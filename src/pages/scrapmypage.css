@@ -1,4 +1,5 @@
 /* 전체 색상 변수 정의: 페이지에서 공통으로 쓰는 색 팔레트 (블루 계열) */
+
 :root {
   --deep-teal: #1e3a8a;        /* 진한 파랑 계열 포인트 */
   --deep-teal-dark: #111827;   /* 더 진한 네이비 */
@@ -23,15 +24,22 @@
 
 /* 상단 히어로 영역 (타이틀 배너) */
 .scrap-page__hero {
-  background: linear-gradient(90deg, #1d4ed8, #2563eb);
-  color: #fff;
-  text-align: center;
-  padding: 14px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
-  letter-spacing: 0.02em;
+  width: min(1100px, 100%);
+  margin: 0 auto 24px;
+  background: #ffffff;
+  border-radius: 32px;
+  padding: 32px 36px;
+  box-shadow: 0 32px 60px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scrap-page__hero h1 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+  color: #0f172a;
 }
 
 /* 상단 알림 배너(성공/에러 공통 스타일) */
@@ -158,6 +166,30 @@
   text-align: left;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.scrap-item__preview {
+  width: 76px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.15);
+}
+
+.scrap-item__thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scrap-item__text {
+  flex: 1;
+  min-width: 0;
 }
 
 /* 스크랩 제목 텍스트 스타일 */
@@ -198,8 +230,8 @@
 /* 아이콘형 동그란 버튼 공통 스타일 */
 .icon-button {
   position: relative;
-  border: none;
-  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(226, 240, 255, 0.65);
   color: #1d4ed8;
   width: 34px;
   height: 34px;
@@ -213,32 +245,25 @@
     background-color 0.15s ease, color 0.15s ease;
 }
 
-/* 아이콘 버튼 hover 시 살짝 떠오르는 효과 */
 .icon-button:hover {
   background: #eff6ff;
   transform: translateY(-1px);
+  border-color: rgba(148, 163, 184, 0.45);
 }
 
-.icon-button .icon-filled,
-.icon-button .icon-border {
-  position: absolute;
-  transition: opacity 0.15s ease-in-out;
+.icon-button svg {
+  color: #5a8dee;
+  transition: color 0.15s ease-in-out;
 }
 
-.icon-button .icon-filled {
-  opacity: 1;
+.icon-button--active {
+  background: #e0ecff;
+  border-color: #bfdbfe;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
 }
 
-.icon-button .icon-border {
-  opacity: 0;
-}
-
-.icon-button:hover .icon-filled {
-  opacity: 0;
-}
-
-.icon-button:hover .icon-border {
-  opacity: 1;
+.icon-button--active svg {
+  color: #1d4ed8;
 }
 
 /* 기사 원문 영역 전체 카드 배경색 (옅은 블루) */
@@ -248,9 +273,6 @@
 
 /* 기사 상단 헤더(제목 + 원문보기 링크) 레이아웃 */
 .article-panel__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 14px;
 }
 
@@ -262,17 +284,6 @@
 }
 
 /* 기사 헤더 오른쪽 원문보기 링크 스타일 */
-.article-panel__header a {
-  color: #1d4ed8;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.article-panel__header a:hover {
-  text-decoration: underline;
-}
-
 /* 기사 내용 박스(제목+요약) 스타일 */
 .article-panel {
   background: rgba(255, 255, 255, 0.95);
@@ -297,27 +308,35 @@
   color: var(--text-muted);
 }
 
+.article-panel__media {
+  width: 100%;
+  margin: 10px 0 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+}
+
+.article-panel__thumbnail {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+}
+
 /* 기사 원문 박스 (신문본문 느낌) */
-.article-panel__original {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
+.article-panel__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
 }
 
-.article-panel__original h5 {
-  margin: 0 0 10px;
-  color: var(--deep-teal-dark);
-  font-size: 0.95rem;
-}
-
-.article-panel__original p {
-  margin: 0 0 12px;
-  line-height: 1.6;
-}
-
-.article-panel__original p:last-child {
-  margin-bottom: 0;
+.article-panel__link:hover {
+  text-decoration: underline;
 }
 
 /* 메모 영역 전체 카드 배경 */
@@ -413,7 +432,7 @@
   background: transparent;
   color: #2563eb;
   cursor: pointer;
-  margin-left: 6px;
+ 	margin-left: 6px;
   font-size: 0.8rem;
 }
 
@@ -440,7 +459,7 @@
   background: #ffffff;
   border: 1px solid #d0d0d0;
   border-radius: 10px;
-  padding: 12px;
+ 	padding: 12px;
   resize: vertical;
   min-height: 100px;
   box-sizing: border-box;
@@ -562,7 +581,7 @@
 
 /* 모달 본문(입력 폼) */
 .rating-modal__body {
-  display: flex;
+ 	display: flex;
   flex-direction: column;
   gap: 12px;
 }
@@ -627,3 +646,4 @@
     grid-template-columns: 1fr;
   }
 }
+

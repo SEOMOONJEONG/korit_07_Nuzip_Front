@@ -1,45 +1,72 @@
-// src/App.jsx
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
+import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import PropTypes from 'prop-types';
 
-import { getMe, doLogout, getNotifications, markNotificationRead } from './api/nuzipclientapi';
+import {
+  getMe,
+  doLogout,
+  getNotifications,
+  markNotificationRead,
+  type AuthMeResponse,
+  type NotificationDto,
+} from './api/nuzipclientapi';
 
-import Landing from './pages/landing';
-import LoginHome from './pages/loginhome';
+import UserHome from './pages/UserHome';
 import NuzipLogin from './pages/login';
 import LocalRegister from './pages/localregister';
 import LocalRegisterCategories from './pages/localregistercategories';
 import NuzipRegister from './pages/oauth2registercategories';
 import OAuth2Success from './pages/oauth2success';
 import RegisterChoice from './pages/registerchoice';
+import Landing from './pages/landing';
+import HomePage from './pages/HomePage';
 
 // ✅ 프로필 수정 페이지
 import ProfileEditPage from './pages/profileedit';
 import VerifyMePage from './pages/verifyme';
 import ScrapMyPage from './pages/scrapmypage';
-import NewsTestPage from './pages/newstest';
 
 // 알림 아이콘
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import NotificationAddIcon from '@mui/icons-material/NotificationAdd';
+import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
+import PermIdentityOutlinedIcon from '@mui/icons-material/PermIdentityOutlined';
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
+import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
+import AutorenewOutlinedIcon from '@mui/icons-material/AutorenewOutlined';
 
-// 🔹 상단 로고
+// 상단 로고
 import NuzipLogo from './pages/Nuzip_logo2.png';
 
+type ProtectedRouteProps = {
+  children: ReactNode;
+};
+
+type NavLinkStyleArgs = {
+  isActive: boolean;
+};
+
 export default function App() {
-  const [me, setMe] = useState(null);
-  const [checking, setChecking] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [notificationLoading, setNotificationLoading] = useState(false);
-  const [notificationError, setNotificationError] = useState('');
-  const [markingId, setMarkingId] = useState(null);
-  const notificationRef = useRef(null);
+  const [me, setMe] = useState<AuthMeResponse | null>(null);
+  const [checking, setChecking] = useState<boolean>(true);
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [notificationOpen, setNotificationOpen] = useState<boolean>(false);
+  const [notificationLoading, setNotificationLoading] = useState<boolean>(false);
+  const [notificationError, setNotificationError] = useState<string>('');
+  const [markingId, setMarkingId] = useState<NotificationDto['id'] | null>(null);
+  const [markingSelected, setMarkingSelected] = useState<boolean>(false);
+  const [selectedNotificationIds, setSelectedNotificationIds] = useState<NotificationDto['id'][]>([]);
+  const notificationRef = useRef<HTMLDivElement | null>(null);
   const unreadCount = notifications.length;
 
-  const formatNotificationTime = (value) => {
+  const formatNotificationTime = (value?: string | number | Date) => {
     if (!value) return '';
     try {
       return new Date(value).toLocaleString('ko-KR', {
@@ -53,7 +80,7 @@ export default function App() {
     }
   };
 
-  const loadNotifications = useCallback(() => {
+  const loadNotifications = useCallback((): Promise<NotificationDto[]> => {
     if (!me?.authenticated) {
       setNotifications([]);
       return Promise.resolve([]);
@@ -62,7 +89,7 @@ export default function App() {
     setNotificationError('');
     return getNotifications()
       .then((res) => {
-        const items = Array.isArray(res.data) ? res.data : [];
+        const items = (Array.isArray(res.data) ? res.data : []) as NotificationDto[];
         setNotifications(items);
         return items;
       })
@@ -81,11 +108,12 @@ export default function App() {
     setNotificationOpen((prev) => !prev);
   };
 
-  const handleNotificationRead = async (notificationId) => {
+  const handleNotificationRead = async (notificationId: NotificationDto['id']) => {
     setMarkingId(notificationId);
     try {
       await markNotificationRead(notificationId);
       setNotifications((prev) => prev.filter((notification) => notification.id !== notificationId));
+      setSelectedNotificationIds((prev) => prev.filter((id) => id !== notificationId));
     } catch (err) {
       console.error('알림 읽음 처리 실패:', err);
       setNotificationError('알림 읽음 처리에 실패했습니다.');
@@ -94,7 +122,38 @@ export default function App() {
     }
   };
 
-  const refreshMe = useCallback(() => {
+  const toggleNotificationSelection = (notificationId: NotificationDto['id']) => {
+    setSelectedNotificationIds((prev) =>
+      prev.includes(notificationId) ? prev.filter((id) => id !== notificationId) : [...prev, notificationId],
+    );
+  };
+
+  const handleMarkSelectedNotificationsRead = async () => {
+    if (!selectedNotificationIds.length) return;
+    setMarkingSelected(true);
+    try {
+      await Promise.all(selectedNotificationIds.map((notificationId) => markNotificationRead(notificationId)));
+      setNotifications((prev) => prev.filter((notification) => !selectedNotificationIds.includes(notification.id)));
+      setSelectedNotificationIds([]);
+    } catch (err) {
+      console.error('선택 알림 읽음 처리 실패:', err);
+      setNotificationError('선택한 알림 읽음 처리에 실패했습니다.');
+    } finally {
+      setMarkingSelected(false);
+    }
+  };
+
+  const handleToggleSelectAllNotifications = () => {
+    if (!notifications.length) return;
+    const allSelected = selectedNotificationIds.length === notifications.length;
+    if (allSelected) {
+      setSelectedNotificationIds([]);
+      return;
+    }
+    setSelectedNotificationIds(notifications.map((notification) => notification.id));
+  };
+
+  const refreshMe = useCallback((): Promise<AuthMeResponse | null> => {
     const stored = sessionStorage.getItem('jwt');
     if (!stored) {
       setMe(null);
@@ -103,8 +162,15 @@ export default function App() {
     }
     setChecking(true);
     return getMe()
-      .then((res) => setMe(res.data))
-      .catch(() => setMe(null))
+      .then((res) => {
+        const payload = res.data as AuthMeResponse;
+        setMe(payload);
+        return payload;
+      })
+      .catch(() => {
+        setMe(null);
+        return null;
+      })
       .finally(() => setChecking(false));
   }, []);
 
@@ -116,6 +182,7 @@ export default function App() {
     if (!me?.authenticated) {
       setNotifications([]);
       setNotificationOpen(false);
+      setSelectedNotificationIds([]);
     }
   }, [me?.authenticated]);
 
@@ -125,9 +192,19 @@ export default function App() {
   }, [me?.authenticated, loadNotifications]);
 
   useEffect(() => {
+    setSelectedNotificationIds((prev) =>
+      prev.filter((id) => notifications.some((notification) => notification.id === id)),
+    );
+  }, [notifications]);
+
+  useEffect(() => {
     if (!notificationOpen) return;
-    const handleClickOutside = (event) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        event.target instanceof Node &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setNotificationOpen(false);
       }
     };
@@ -135,12 +212,11 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [notificationOpen]);
 
-  const ProtectedRoute = ({ children }) => {
+  const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     if (checking) return <div style={{ padding: 24 }}>로딩 중…</div>;
     if (!me?.authenticated) return <Navigate to="/landing" replace />;
     return children;
   };
-  ProtectedRoute.propTypes = { children: PropTypes.node.isRequired };
 
   const handleLogout = async () => {
     try {
@@ -157,7 +233,7 @@ export default function App() {
   };
 
   // 🔵 기본 링크 스타일: 배경 흰색, 선택 시 파란 글씨 + 옅은 칩 배경
-  const linkStyle = ({ isActive }) => ({
+  const linkStyle = ({ isActive }: NavLinkStyleArgs) => ({
     marginRight: 8,
     textDecoration: 'none',
     color: isActive ? '#2563eb' : '#4b5563',
@@ -169,15 +245,7 @@ export default function App() {
     backgroundColor: isActive ? 'rgba(37,99,235,0.08)' : 'transparent',
   });
 
-  // 로고: 홈 역할 (비로그인: /landing, 로그인: /home)
-  const logoLinkStyle = () => ({
-    display: 'flex',
-    alignItems: 'center',
-    marginRight: 16,
-    textDecoration: 'none',
-  });
-
-  const usernameLinkStyle = ({ isActive }) => ({
+  const usernameLinkStyle = ({ isActive }: NavLinkStyleArgs) => ({
     marginLeft: 'auto',
     marginRight: 8,
     textDecoration: 'none',
@@ -201,13 +269,13 @@ export default function App() {
     cursor: 'pointer',
   };
 
-  const notificationWrapperStyle = {
+  const notificationWrapperStyle: CSSProperties = {
     position: 'relative',
     marginLeft: 4,
     marginRight: 8,
   };
 
-  const notificationButtonStyle = {
+  const notificationButtonStyle: CSSProperties = {
     width: 38,
     height: 36,
     borderRadius: 999,
@@ -222,7 +290,7 @@ export default function App() {
     padding: 0,
   };
 
-  const notificationBadgeStyle = {
+  const notificationBadgeStyle: CSSProperties = {
     position: 'absolute',
     top: 4,
     right: 4,
@@ -238,7 +306,12 @@ export default function App() {
     fontWeight: 700,
   };
 
-  const notificationPanelStyle = {
+  const navIconLinkStyle: CSSProperties = {
+    ...notificationButtonStyle,
+    textDecoration: 'none',
+  };
+
+  const notificationPanelStyle: CSSProperties = {
     position: 'absolute',
     top: 'calc(100% + 12px)',
     right: 0,
@@ -255,19 +328,19 @@ export default function App() {
     zIndex: 30,
   };
 
-  const notificationHeaderStyle = {
+  const notificationHeaderStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
   };
 
-  const notificationHeaderTitleStyle = {
+  const notificationHeaderTitleStyle: CSSProperties = {
     fontSize: 14,
     fontWeight: 700,
     color: '#0f172a',
   };
 
-  const notificationRefreshButtonStyle = {
+  const notificationRefreshButtonStyle: CSSProperties = {
     fontSize: 12,
     borderRadius: 999,
     padding: '4px 10px',
@@ -277,7 +350,7 @@ export default function App() {
     cursor: 'pointer',
   };
 
-  const notificationListStyle = {
+  const notificationListStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
@@ -285,32 +358,32 @@ export default function App() {
     overflowY: 'auto',
   };
 
-  const notificationItemStyle = {
+  const notificationItemStyle: CSSProperties = {
     borderRadius: 12,
     border: '1px solid rgba(226,232,240,0.9)',
     padding: '10px 12px',
     background: 'rgba(248,250,252,0.9)',
   };
 
-  const notificationMessageStyle = {
+  const notificationMessageStyle: CSSProperties = {
     fontSize: 13,
     fontWeight: 600,
     color: '#111827',
     marginBottom: 6,
   };
 
-  const notificationMetaRowStyle = {
+  const notificationMetaRowStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
   };
 
-  const notificationMetaStyle = {
+  const notificationMetaStyle: CSSProperties = {
     fontSize: 11,
     color: '#6b7280',
   };
 
-  const notificationActionButtonStyle = {
+  const notificationActionButtonStyle: CSSProperties = {
     marginLeft: 'auto',
     fontSize: 12,
     padding: '4px 10px',
@@ -321,7 +394,7 @@ export default function App() {
     cursor: 'pointer',
   };
 
-  const notificationEmptyStyle = {
+  const notificationEmptyStyle: CSSProperties = {
     width: '100%',
     padding: '12px 0',
     textAlign: 'center',
@@ -329,16 +402,50 @@ export default function App() {
     color: '#6b7280',
   };
 
-  const notificationErrorStyle = {
+  const notificationErrorStyle: CSSProperties = {
     fontSize: 12,
     color: '#dc2626',
   };
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const loginIconLinkStyle = () => ({
+    textDecoration: 'none',
+    display: 'flex',
+    alignItems: 'center',
+  });
+
+  const loginIconButtonStyle: CSSProperties = {
+    width: 40,
+    height: 38,
+    borderRadius: 999,
+    border: '1px solid rgba(37,99,235,0.5)',
+    background: '#ffffff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    boxShadow: '0 6px 12px rgba(37,99,235,0.15)',
+    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+  };
+
+  const navLogoLinkStyle: CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textDecoration: 'none',
+    marginRight: 12,
+  };
+
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+
+  const NavBar = () => {
+    const location = useLocation();
+    const isUserHomeRoute = location.pathname === '/home';
+    const isPublicHomeRoute = location.pathname === '/';
+    const isLandingRoute = location.pathname === '/landing';
+    const showNavLogo = !isUserHomeRoute;
+    const logoTarget = me?.authenticated ? '/home' : '/home-feed';
 
   return (
-    <GoogleOAuthProvider clientId={clientId}>
-      <BrowserRouter>
         <nav
           style={{
             padding: '10px 20px',
@@ -346,53 +453,37 @@ export default function App() {
             display: 'flex',
             gap: 10,
             alignItems: 'center',
-            background: '#ffffff',          // 🔹 배경 흰색
+          background: '#ffffff',
             boxShadow: '0 6px 14px rgba(15,23,42,0.04)',
           }}
         >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+          {showNavLogo && (
+            <NavLink to={logoTarget} style={navLogoLinkStyle} aria-label="홈으로 이동">
+              <img src={NuzipLogo} alt="Nuzip" style={{ height: 30, width: 'auto', display: 'block' }} />
+            </NavLink>
+          )}
+        </div>
+
           {/* 비로그인 상태 */}
           {!me?.authenticated ? (
-            <>
-              {/* 로고 = /landing (홈 역할) */}
-              <NavLink to="/landing" style={logoLinkStyle}>
-                <img
-                  src={NuzipLogo}
-                  alt="Nuzip"
-                  style={{ height: 30, width: 'auto', display: 'block' }}
-                />
+              <NavLink to="/login" style={loginIconLinkStyle} aria-label="로그인" title="로그인">
+                <span style={loginIconButtonStyle}>
+                  <PermIdentityOutlinedIcon fontSize="small" style={{ color: '#2563eb' }} />
+                </span>
               </NavLink>
-
-              <NavLink to="/register-choice" style={linkStyle}>
-                회원가입
-              </NavLink>
-              <NavLink to="/login" style={linkStyle}>
-                로그인
-              </NavLink>
-            </>
           ) : (
             <>
-              {/* 로고 = /home (홈 역할) / 🔹 텍스트 '홈' 버튼은 제거 */}
-              <NavLink to="/home" style={logoLinkStyle}>
-                <img
-                  src={NuzipLogo}
-                  alt="Nuzip"
-                  style={{ height: 30, width: 'auto', display: 'block' }}
-                />
-              </NavLink>
-
-              <NavLink to="/news/test" style={linkStyle}>
-                뉴스 테스트
-              </NavLink>
-              <NavLink to="/scrap/mypage" style={linkStyle}>
-                마이페이지
-              </NavLink>
-
               <NavLink
                 to="/profile/verify"
                 style={usernameLinkStyle}
                 title="내 정보 수정"
               >
                 {(me?.username || me?.userId || '회원')} 님
+              </NavLink>
+
+              <NavLink to="/scrap/mypage" style={navIconLinkStyle} title="마이페이지">
+                <NoteAltOutlinedIcon fontSize="small" style={{ color: '#2563eb' }} />
               </NavLink>
 
               <div style={notificationWrapperStyle} ref={notificationRef}>
@@ -402,7 +493,7 @@ export default function App() {
                   style={notificationButtonStyle}
                   aria-label="알림 열기"
                 >
-                  {/* 🔔 알림 없음 / 🔔+ 아이콘 알림 있음 */}
+                {/* 알림 아이콘 */}
                   {unreadCount > 0 ? (
                     <NotificationAddIcon fontSize="small" style={{ color: '#2563eb' }} />
                   ) : (
@@ -419,14 +510,57 @@ export default function App() {
                   <div style={notificationPanelStyle}>
                     <div style={notificationHeaderStyle}>
                       <span style={notificationHeaderTitleStyle}>알림</span>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          style={notificationRefreshButtonStyle}
+                          onClick={loadNotifications}
+                          title="알림 새로고침"
+                          disabled={notificationLoading}
+                        >
+                          <AutorenewOutlinedIcon
+                            fontSize="small"
+                            style={{ color: '#2563eb', opacity: notificationLoading ? 0.6 : 1 }}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          style={notificationRefreshButtonStyle}
+                          onClick={handleToggleSelectAllNotifications}
+                          title={
+                            selectedNotificationIds.length === notifications.length
+                              ? '전체 선택 해제'
+                              : '전체 선택'
+                          }
+                          disabled={notificationLoading || notifications.length === 0}
+                        >
+                          <CheckBoxOutlinedIcon
+                            fontSize="small"
+                            style={{
+                              color:
+                                selectedNotificationIds.length === notifications.length
+                                  ? '#2563eb'
+                                  : '#94a3b8',
+                            }}
+                          />
+                        </button>
                       <button
                         type="button"
                         style={notificationRefreshButtonStyle}
-                        onClick={loadNotifications}
-                        disabled={notificationLoading}
+                        onClick={handleMarkSelectedNotificationsRead}
+                        title="선택한 알림 읽음 처리"
+                        disabled={
+                          markingSelected ||
+                          notificationLoading ||
+                          selectedNotificationIds.length === 0
+                        }
                       >
-                        {notificationLoading ? '불러오는 중' : '새로고침'}
+                        <MarkEmailReadOutlinedIcon
+                          fontSize="small"
+                          style={{ color: '#2563eb', opacity: markingSelected ? 0.6 : 1 }}
+                        />
                       </button>
+                      </div>
                     </div>
                     {notificationError && (
                       <div style={notificationErrorStyle}>{notificationError}</div>
@@ -438,26 +572,39 @@ export default function App() {
                       {!notificationLoading && notifications.length === 0 && (
                         <div style={notificationEmptyStyle}>새로운 알림이 없습니다.</div>
                       )}
-                      {notifications.map((notification) => (
-                        <div key={notification.id} style={notificationItemStyle}>
-                          <div style={notificationMessageStyle}>
-                            {notification.message || '알림 내용이 없습니다.'}
+                      {notifications.map((notification) => {
+                        const checked = selectedNotificationIds.includes(notification.id);
+                        return (
+                          <div key={notification.id} style={notificationItemStyle}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleNotificationSelection(notification.id)}
+                                style={{ marginTop: 4 }}
+                              />
+                              <div style={{ flex: 1 }}>
+                                <div style={notificationMessageStyle}>
+                                  {notification.message || '알림 내용이 없습니다.'}
+                                </div>
+                                <div style={notificationMetaRowStyle}>
+                                  <span style={notificationMetaStyle}>
+                                    {formatNotificationTime(notification.createdAt)}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    style={notificationActionButtonStyle}
+                                    onClick={() => handleNotificationRead(notification.id)}
+                                    disabled={markingId === notification.id}
+                                  >
+                                    {markingId === notification.id ? '처리 중' : '확인'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div style={notificationMetaRowStyle}>
-                            <span style={notificationMetaStyle}>
-                              {formatNotificationTime(notification.createdAt)}
-                            </span>
-                            <button
-                              type="button"
-                              style={notificationActionButtonStyle}
-                              onClick={() => handleNotificationRead(notification.id)}
-                              disabled={markingId === notification.id}
-                            >
-                              {markingId === notification.id ? '처리 중' : '확인'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -469,9 +616,16 @@ export default function App() {
             </>
           )}
         </nav>
+    );
+  };
 
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      <BrowserRouter>
+        <NavBar />
         <Routes>
-          <Route path="/" element={<Navigate to="/landing" replace />} />
+          <Route path="/" element={me?.authenticated ? <Navigate to="/home" replace /> : <Landing />} />
+          <Route path="/home-feed" element={<HomePage />} />
 
           {/* 공개 페이지 */}
           <Route
@@ -500,7 +654,7 @@ export default function App() {
             path="/home"
             element={
               <ProtectedRoute>
-                <LoginHome me={me} />
+                <UserHome />
               </ProtectedRoute>
             }
           />
@@ -528,15 +682,6 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ScrapMyPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/news/test"
-            element={
-              <ProtectedRoute>
-                <NewsTestPage />
               </ProtectedRoute>
             }
           />

@@ -1,0 +1,112 @@
+@import '../styles/icon-button.css';
+
+.scrap-action-buttons {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.rating-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.rating-modal__dialog {
+  position: relative;
+  width: min(480px, 90vw);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rating-modal__header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.rating-modal__header p {
+  margin: 8px 0 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.rating-modal__stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.star-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 26px;
+  color: #d1d5db;
+}
+
+.star-button--active {
+  color: #fbbf24;
+}
+
+.rating-modal__score {
+  font-size: 14px;
+  color: #475569;
+}
+
+.rating-modal__body textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.rating-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.rating-modal__footer button {
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.rating-modal__footer button[type='submit'] {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
