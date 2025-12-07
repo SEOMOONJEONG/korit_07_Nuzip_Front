@@ -227,7 +227,7 @@ export default function Landing() {
         <section className="feature-section" id="feature">
           <div className="section-head">
             <p className="section-label">스마트 뉴스 경험</p>
-            <h2>아침 5분이면 하루 트렌드를 파악할 수 있어요.</h2>
+            <h2>아침 5분이면 하루의 뉴스를 파악할 수 있어요.</h2>
             <p className="section-subtitle">
               개인 맞춤 추천부터 AI 요약, 스크랩과 메모까지 한 번에 제공합니다.
             </p>
@@ -252,13 +252,6 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <span>NUZIP © 2025</span>
-        <nav>
-          <a href="#hero">서비스 소개</a>
-          <a href="/privacy" onClick={(event) => event.preventDefault()}>
-            개인정보 처리방침
-          </a>
-          <a href="mailto:contact@nuzip.co.kr">문의</a>
-        </nav>
       </footer>
     </div>
   );
