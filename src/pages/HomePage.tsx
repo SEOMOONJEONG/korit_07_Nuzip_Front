@@ -113,7 +113,6 @@ export default function HomePage() {
         </div>
         {tickerNews.length > 0 && (
           <>
-            <p className="home-description highlight">최신 기사와 카테고리별 뉴스를 한눈에 확인하세요.</p>
             <div className="home-hero-ticker">
               <NewsTicker newsList={tickerNews} />
             </div>
