@@ -7,12 +7,12 @@ import { useScrapManager } from '../hooks/useScrapManager';
 import { fetchLatestNews, fetchNewsByCategory, getMyCategories } from '../api/nuzipclientapi';
 import type { UiNews, CategoryKey } from '../types/news';
 import { DEFAULT_CATEGORY_OPTIONS, toCategoryKey, toCategoryLabel } from '../types/news';
-import { matchesSearchTerm, sortNewsByDate } from '../utils/news';
+import { filterDisplayableNews, matchesSearchTerm, sortNewsByDate } from '../utils/news';
 import './UserHome.css';
 import '../components/components.css';
 
 const FALLBACK_CATEGORIES: CategoryKey[] = ['POLITICS', 'ECONOMY', 'IT_SCIENCE'];
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 8;
 
 export default function UserHome() {
   const [userCategories, setUserCategories] = useState<CategoryKey[]>(FALLBACK_CATEGORIES);
@@ -53,11 +53,13 @@ export default function UserHome() {
       ]);
 
       const latestItems = (Array.isArray(latestRes.data) ? latestRes.data : []) as UiNews[];
-      setLatestNews(sortNewsByDate(latestItems));
+      setLatestNews(filterDisplayableNews(sortNewsByDate(latestItems)));
 
       const categoryMap: Record<string, UiNews[]> = {};
       categoryResults.forEach(({ category, data }) => {
-        categoryMap[category] = sortNewsByDate(Array.isArray(data) ? data : []);
+        categoryMap[category] = filterDisplayableNews(
+          sortNewsByDate(Array.isArray(data) ? data : [])
+        );
       });
       setNewsByCategory(categoryMap);
 
@@ -87,7 +89,9 @@ export default function UserHome() {
         return explicit;
       }
       return sortNewsByDate(
-        latestNews.filter((news) => toCategoryKey(news.category as string) === category)
+        filterDisplayableNews(
+          latestNews.filter((news) => toCategoryKey(news.category as string) === category)
+        )
       );
     },
     [newsByCategory, latestNews]

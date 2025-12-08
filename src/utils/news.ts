@@ -12,6 +12,24 @@ const BASIC_ENTITY_MAP: Record<string, string> = {
   '&gt;': '>',
 };
 
+const FAILURE_INDICATORS = [
+  '기사 없음',
+  '내용 부족',
+  '분석 불가',
+  '정보 없음',
+  '데이터 없음',
+  '제공된 기사',
+  '요약 불가',
+  '분석 실패',
+  '기사 내용',
+  '이 기사는',
+  '이 내용은',
+  '제공된 텍스트',
+  '기사 본문',
+  '제공된 내용은',
+  '#오류',
+];
+
 const fallbackDecodeEntities = (input: string) =>
   input.replace(/&(quot|#34|#39|apos|amp|lt|gt);/g, (match) => BASIC_ENTITY_MAP[match] ?? match);
 
@@ -28,6 +46,27 @@ export const decodeHtmlEntities = (value?: string | null): string => {
   htmlEntityDecoder.innerHTML = value;
   return htmlEntityDecoder.value;
 };
+
+const normalizeNoise = (value?: string) =>
+  (value ?? '')
+    .toLowerCase()
+    .replace(/\s/g, '')
+    .replace(/ㆍ/g, '')
+    .replace(/[.#\[\]]/g, '');
+
+export const shouldDisplayNews = (newsItem: UiNews) => {
+  const summary = newsItem.summary ?? '';
+  if (summary.trim().length < 5) return false;
+  const normalizedSummary = normalizeNoise(summary);
+  const normalizedKeywords = normalizeNoise(newsItem.keywords);
+  return !FAILURE_INDICATORS.some((indicator) => {
+    const key = normalizeNoise(indicator);
+    return normalizedSummary.includes(key) || normalizedKeywords.includes(key);
+  });
+};
+
+export const filterDisplayableNews = (items: UiNews[]) =>
+  items.filter((item) => shouldDisplayNews(item));
 
 export const parsePublishedAt = (value?: UiNews['publishedAt']): Date => {
   if (!value) return new Date(0);

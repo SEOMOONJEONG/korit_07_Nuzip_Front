@@ -5,11 +5,11 @@ import NewsCard from '../components/NewsCard';
 import { fetchLatestNews } from '../api/nuzipclientapi';
 import type { UiNews, CategoryKey } from '../types/news';
 import { toCategoryKey } from '../types/news';
-import { matchesSearchTerm, sortNewsByDate } from '../utils/news';
+import { filterDisplayableNews, matchesSearchTerm, shouldDisplayNews, sortNewsByDate } from '../utils/news';
 import './HomePage.css';
 import '../components/components.css';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8;
 
 const QUICK_CATEGORY_TAGS = [
   { key: 'ALL', label: '전체', icon: '🗞️' },
@@ -53,7 +53,7 @@ export default function HomePage() {
   }, [loadNews]);
 
   const filteredNews = useMemo(() => {
-    let items = [...newsList];
+    let items = filterDisplayableNews(newsList);
     if (selectedCategory !== 'ALL') {
       items = items.filter(
         (article) => toCategoryKey(article.category as string) === selectedCategory
@@ -62,7 +62,7 @@ export default function HomePage() {
     if (activeSearchTerm) {
       items = items.filter((article) => matchesSearchTerm(article, activeSearchTerm));
     }
-    return sortNewsByDate(items);
+    return sortNewsByDate(items).filter(shouldDisplayNews);
   }, [newsList, selectedCategory, activeSearchTerm]);
 
   const totalPages = Math.max(1, Math.ceil(filteredNews.length / ITEMS_PER_PAGE));
@@ -113,6 +113,7 @@ export default function HomePage() {
         </div>
         {tickerNews.length > 0 && (
           <>
+            <p className="home-description highlight">최신 기사와 카테고리별 뉴스를 한눈에 확인하세요.</p>
             <div className="home-hero-ticker">
               <NewsTicker newsList={tickerNews} />
             </div>

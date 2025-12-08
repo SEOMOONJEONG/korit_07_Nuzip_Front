@@ -6,7 +6,7 @@ import DefaultThumbnail from './Nuzip_logo.png';
 import { fetchLatestNews } from '../api/nuzipclientapi';
 import type { UiNews } from '../types/news';
 import { toCategoryLabel } from '../types/news';
-import { decodeHtmlEntities, sortNewsByDate } from '../utils/news';
+import { decodeHtmlEntities, filterDisplayableNews, sortNewsByDate } from '../utils/news';
 
 type HeroPreview = {
   id: string;
@@ -110,7 +110,7 @@ export default function Landing() {
     try {
       const { data } = await fetchLatestNews({ page: 0, size: 60 });
       const items = (Array.isArray(data) ? data : []) as UiNews[];
-      const prepared = sortNewsByDate(items)
+      const prepared = filterDisplayableNews(sortNewsByDate(items))
         .slice(0, HERO_MAX_ITEMS)
         .map(buildHeroPreview)
         .filter((item) => item.title.trim().length > 0);
