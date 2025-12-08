@@ -1,6 +1,7 @@
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarIcon from '@mui/icons-material/Star';
 import type { ScrapManager } from '../hooks/useScrapManager';
+import { decodeHtmlEntities } from '../utils/news';
 import './ScrapActions.css';
 
 type ScrapRatingModalProps = {
@@ -21,6 +22,12 @@ export default function ScrapRatingModal({ manager }: ScrapRatingModalProps) {
 
   if (!ratingModal.open || !ratingModal.scrap) return null;
 
+  const decodedTitle = (() => {
+    const text = decodeHtmlEntities(ratingModal.scrap.title).trim();
+    return text.length > 0 ? text : '제목 없음';
+  })();
+  const decodedSummary = decodeHtmlEntities(ratingModal.scrap.summary).trim();
+
   return (
     <div className="rating-modal" role="dialog" aria-modal="true">
       <div className="rating-modal__backdrop" onClick={closeRating} />
@@ -32,8 +39,8 @@ export default function ScrapRatingModal({ manager }: ScrapRatingModalProps) {
         }}
       >
         <div className="rating-modal__header">
-          <h4>{ratingModal.scrap.title}</h4>
-          <p>{ratingModal.scrap.summary || '요약이 없습니다.'}</p>
+          <h4>{decodedTitle}</h4>
+          <p>{decodedSummary || '요약이 없습니다.'}</p>
         </div>
 
         <div className="rating-modal__body">

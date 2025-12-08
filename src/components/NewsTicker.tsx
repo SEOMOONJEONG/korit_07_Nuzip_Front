@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { UiNews } from '../types/news';
+import { decodeHtmlEntities } from '../utils/news';
 import './NewsTicker.css';
 
 type NewsTickerProps = {
@@ -58,7 +59,9 @@ export default function NewsTicker({ newsList }: NewsTickerProps) {
               transition: translate === 0 ? 'none' : 'transform 0.45s ease-out',
             }}
           >
-            {queue.map((item, index) => (
+            {queue.map((item, index) => {
+              const title = decodeHtmlEntities(item.title) || '제목 없음';
+              return (
               <a
                 key={`${item.id ?? item.title}-${index}`}
                 href={(item.originalLink as string) || (item.url as string) || '#'}
@@ -67,9 +70,10 @@ export default function NewsTicker({ newsList }: NewsTickerProps) {
                 ref={index === 0 ? tickerItemRef : null}
                 className="ticker-item"
               >
-                {item.title || '제목 없음'}
+                {title}
               </a>
-            ))}
+            );
+            })}
           </div>
         </div>
         <button type="button" onClick={() => setExpanded((prev) => !prev)} className="ticker-btn">
@@ -79,7 +83,9 @@ export default function NewsTicker({ newsList }: NewsTickerProps) {
 
       {expanded && (
         <div className="ticker-expanded-list">
-          {newsList.map((item, index) => (
+          {newsList.map((item, index) => {
+            const title = decodeHtmlEntities(item.title) || '제목 없음';
+            return (
             <a
               key={`${item.id ?? item.title}-expanded-${index}`}
               href={(item.originalLink as string) || (item.url as string) || '#'}
@@ -87,9 +93,10 @@ export default function NewsTicker({ newsList }: NewsTickerProps) {
               rel="noopener noreferrer"
               className='ticker-expanded-item'
             >
-              {item.title || '제목 없음'}
+              {title}
             </a>
-          ))}
+          );
+          })}
         </div>
       )}
     </div>

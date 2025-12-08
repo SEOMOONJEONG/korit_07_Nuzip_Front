@@ -10,6 +10,7 @@ import {
   type ScrapDto,
 } from '../api/nuzipclientapi';
 import { withCachedScrapImage } from '../utils/scrap';
+import { decodeHtmlEntities } from '../utils/news';
 import './scrapmypage.css';
 import DefaultThumbnail from './Nuzip_logo.png';
 
@@ -99,6 +100,14 @@ const DUMMY_SCRAPS = [
   },
 ];
 
+const getDecodedTitle = (value?: string | null) => {
+  const decoded = decodeHtmlEntities(value);
+  const trimmed = decoded.trim();
+  return trimmed.length > 0 ? trimmed : '제목 없음';
+};
+
+const getDecodedSummary = (value?: string | null) => decodeHtmlEntities(value).trim();
+
 export default function ScrapMyPage() {
   // 초기값을 더미 데이터로 설정
   const initialScraps = (USE_DUMMY_DATA ? DUMMY_SCRAPS : []) as ScrapDto[];
@@ -165,7 +174,7 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
         (scrap.memos || []).map((memo) => ({
           ...memo,
           scrapId: scrap.id,
-          scrapTitle: scrap.title,
+          scrapTitle: getDecodedTitle(scrap.title),
         })),
       ),
     [scraps],
@@ -492,10 +501,18 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
   };
 
 
+  const selectedTitleText = selectedScrap ? getDecodedTitle(selectedScrap.title) : '';
+  const selectedSummaryText = selectedScrap ? getDecodedSummary(selectedScrap.summary) : '';
+
   const layoutClass =
     selectedScrap && detailVisible
       ? 'scrap-page__grid scrap-page__grid--detail'
       : 'scrap-page__grid';
+
+  const ratingTitleText =
+    ratingModal.open && ratingModal.scrap ? getDecodedTitle(ratingModal.scrap.title) : '';
+  const ratingSummaryText =
+    ratingModal.open && ratingModal.scrap ? getDecodedSummary(ratingModal.scrap.summary) : '';
 
   return (
     <div className="scrap-page">
@@ -518,75 +535,79 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
             <div className="scrap-page__placeholder">아직 스크랩한 뉴스가 없습니다.</div>
           ) : (
             <ul className="scrap-list">
-              {scraps.map((scrap) => (
-                <li
-                  key={scrap.id}
-                  className={`scrap-item ${
-                    selectedScrapId === scrap.id ? 'scrap-item--active' : ''
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="scrap-item__body"
-                    onClick={() => handleSelectScrap(scrap.id)}
+              {scraps.map((scrap) => {
+                const titleText = getDecodedTitle(scrap.title);
+                const summaryText = getDecodedSummary(scrap.summary);
+                return (
+                  <li
+                    key={scrap.id}
+                    className={`scrap-item ${
+                      selectedScrapId === scrap.id ? 'scrap-item--active' : ''
+                    }`}
                   >
-                    <div className="scrap-item__preview">
-                      <img
-                        src={scrap.imageUrl || DefaultThumbnail}
-                        alt={scrap.title}
-                        className="scrap-item__thumbnail"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="scrap-item__text">
-                      <h4>{scrap.title}</h4>
-                      <p>{scrap.summary || '요약이 없습니다.'}</p>
-                    </div>
-                  </button>
-                  <div className="scrap-item__footer">
-                    <span className="scrap-item__date">{formatDate(scrap.createdAt)}</span>
-                    <div className="scrap-item__actions">
-                      <button
-                        type="button"
-                        className="icon-button icon-button--active"
-                        title="스크랩 삭제"
-                        onClick={() => handleDeleteScrap(scrap.id)}
-                      >
-                        <BookmarkIcon fontSize="small" />
-                      </button>
+                    <button
+                      type="button"
+                      className="scrap-item__body"
+                      onClick={() => handleSelectScrap(scrap.id)}
+                    >
+                      <div className="scrap-item__preview">
+                        <img
+                          src={scrap.imageUrl || DefaultThumbnail}
+                          alt={titleText}
+                          className="scrap-item__thumbnail"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="scrap-item__text">
+                        <h4>{titleText}</h4>
+                        <p>{summaryText || '요약이 없습니다.'}</p>
+                      </div>
+                    </button>
+                    <div className="scrap-item__footer">
+                      <span className="scrap-item__date">{formatDate(scrap.createdAt)}</span>
+                      <div className="scrap-item__actions">
+                        <button
+                          type="button"
+                          className="icon-button icon-button--active"
+                          title="스크랩 삭제"
+                          onClick={() => handleDeleteScrap(scrap.id)}
+                        >
+                          <BookmarkIcon fontSize="small" />
+                        </button>
 
-                      {(() => {
-                        const ratingActive =
-                          ratingModal.open && ratingModal.scrap?.id === scrap.id;
-                        const ratingButtonClass = [
-                          'icon-button',
-                          'rating-button',
-                          ratingActive ? 'rating-button--active' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ');
-                        return (
-                          <button
-                            type="button"
-                            className={ratingButtonClass}
-                            title="평점 남기기"
-                            onClick={() => openRatingModal(scrap)}
-                          >
-                            <StarBorderIcon
-                              className="rating-icon rating-icon--outline"
-                              fontSize="small"
-                            />
-                            <StarRateIcon
-                              className="rating-icon rating-icon--filled"
-                              fontSize="small"
-                            />
-                          </button>
-                        );
-                      })()}
+                        {(() => {
+                          const ratingActive =
+                            ratingModal.open && ratingModal.scrap?.id === scrap.id;
+                          const ratingButtonClass = [
+                            'icon-button',
+                            'rating-button',
+                            ratingActive ? 'rating-button--active' : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ');
+                          return (
+                            <button
+                              type="button"
+                              className={ratingButtonClass}
+                              title="평점 남기기"
+                              onClick={() => openRatingModal(scrap)}
+                            >
+                              <StarBorderIcon
+                                className="rating-icon rating-icon--outline"
+                                fontSize="small"
+                              />
+                              <StarRateIcon
+                                className="rating-icon rating-icon--filled"
+                                fontSize="small"
+                              />
+                            </button>
+                          );
+                        })()}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </aside>
@@ -598,17 +619,17 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
               <h3>뉴스 기사의 원문내용</h3>
             </header>
             <article className="article-panel">
-              <h4>{selectedScrap.title}</h4>
+              <h4>{selectedTitleText}</h4>
               <div className="article-panel__media">
                 <img
                   src={selectedScrap.imageUrl || DefaultThumbnail}
-                  alt={selectedScrap.title}
+                  alt={selectedTitleText || '뉴스 이미지'}
                   className="article-panel__thumbnail"
                   loading="lazy"
                 />
               </div>
-              {selectedScrap.summary ? (
-                <p className="article-panel__summary">{selectedScrap.summary}</p>
+              {selectedSummaryText ? (
+                <p className="article-panel__summary">{selectedSummaryText}</p>
               ) : (
                 <p className="article-panel__summary">요약 정보가 없습니다.</p>
               )}
@@ -633,7 +654,7 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
           {detailVisible && selectedScrap ? (
             <>
               <p className="memo-subtitle">
-                현재 선택한 기사: <strong>{selectedScrap.title}</strong>
+                현재 선택한 기사: <strong>{selectedTitleText}</strong>
               </p>
 
               <div className="memo-list">
@@ -757,8 +778,8 @@ const [articleMemosOpen, setArticleMemosOpen] = useState(true);
           <div className="rating-modal__backdrop" onClick={closeRatingModal} />
           <form className="rating-modal__dialog" onSubmit={handleSubmitRating}>
             <div className="rating-modal__header">
-              <h4>{ratingModal.scrap?.title}</h4>
-              <p>{ratingModal.scrap?.summary || '요약이 없습니다.'}</p>
+              <h4>{ratingTitleText}</h4>
+              <p>{ratingSummaryText || '요약이 없습니다.'}</p>
             </div>
             <div className="rating-modal__body">
               {/* 별점 선택 영역 */}

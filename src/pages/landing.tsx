@@ -6,7 +6,7 @@ import DefaultThumbnail from './Nuzip_logo.png';
 import { fetchLatestNews } from '../api/nuzipclientapi';
 import type { UiNews } from '../types/news';
 import { toCategoryLabel } from '../types/news';
-import { sortNewsByDate } from '../utils/news';
+import { decodeHtmlEntities, sortNewsByDate } from '../utils/news';
 
 type HeroPreview = {
   id: string;
@@ -55,10 +55,10 @@ export default function Landing() {
   const handleLogin = () => navigate('/login');
 
   const parseTags = useCallback((news: UiNews): string[] => {
-    const raw = news.keywords ?? '';
+    const raw = decodeHtmlEntities(news.keywords ?? '');
     const tags = raw
       .split(/[,#]/)
-      .map((tag) => tag.trim())
+      .map((tag) => decodeHtmlEntities(tag).trim())
       .filter(Boolean);
     if (tags.length > 0) {
       return tags.slice(0, 3);
@@ -86,17 +86,18 @@ export default function Landing() {
   const buildHeroPreview = useCallback(
     (news: UiNews, idx: number): HeroPreview => {
       const summarySource =
-        news.summary ||
-        (typeof news.description === 'string' ? news.description : '') ||
+        news.summary ??
+        (typeof news.description === 'string' ? news.description : '') ??
         (typeof news.content === 'string' ? news.content : '');
+      const decodedSummary = decodeHtmlEntities(summarySource);
       const summary =
-        summarySource.length > 90
-          ? `${summarySource.slice(0, 87)}…`
-          : summarySource || '기사를 불러오는 중입니다.';
+        decodedSummary.length > 90
+          ? `${decodedSummary.slice(0, 87)}…`
+          : decodedSummary || '기사를 불러오는 중입니다.';
 
       return {
         id: String(news.id ?? `latest-${idx}`),
-        title: news.title || '제목 없음',
+        title: decodeHtmlEntities(news.title || '제목 없음'),
         summary,
         tags: parseTags(news),
         imageUrl: getPreviewImage(news, idx),
@@ -227,7 +228,7 @@ export default function Landing() {
         <section className="feature-section" id="feature">
           <div className="section-head">
             <p className="section-label">스마트 뉴스 경험</p>
-            <h2>아침 5분이면 하루의 뉴스를 파악할 수 있어요.</h2>
+            <h2>아침 5분이면 하루 트렌드를 파악할 수 있어요.</h2>
             <p className="section-subtitle">
               개인 맞춤 추천부터 AI 요약, 스크랩과 메모까지 한 번에 제공합니다.
             </p>
@@ -252,6 +253,13 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <span>NUZIP © 2025</span>
+        <nav>
+          <a href="#hero">서비스 소개</a>
+          <a href="/privacy" onClick={(event) => event.preventDefault()}>
+            개인정보 처리방침
+          </a>
+          <a href="mailto:contact@nuzip.co.kr">문의</a>
+        </nav>
       </footer>
     </div>
   );

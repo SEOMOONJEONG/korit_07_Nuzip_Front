@@ -15,6 +15,7 @@ import {
   sendEmailVerification,
   confirmEmailVerification,
 } from '../api/nuzipclientapi';
+import { getPasswordRuleStates, validatePasswordStrength } from '../utils/password';
 import NuzipLogo from './Nuzip_logo2.png'; // 🔹 로고 이미지 추가
 
 type LocalRegisterForm = {
@@ -76,6 +77,9 @@ export default function LocalRegister() {
     const fieldName = name as keyof LocalRegisterForm;
     const nextValue = fieldName === 'userId' ? value.trim().toLowerCase() : value;
     setForm((f) => ({ ...f, [fieldName]: nextValue }));
+    if (fieldName === 'password' && err) {
+      setErr('');
+    }
     if (fieldName === 'userId') {
       setEmailVerified(false);
       setVerificationCode('');
@@ -108,6 +112,7 @@ export default function LocalRegister() {
   }, []);
 
   const isGmail = (form.userId || "").toLowerCase().endsWith("@gmail.com");
+const passwordRuleStates = getPasswordRuleStates(form.password);
 
   const sendVerification = async () => {
     setVerificationError("");
@@ -174,6 +179,12 @@ export default function LocalRegister() {
 
     if (!form.userId || !form.password || !form.username) {
       setErr("이메일/비밀번호/이름은 필수입니다.");
+      return;
+    }
+
+    const passwordError = validatePasswordStrength(form.password);
+    if (passwordError) {
+      setErr(passwordError);
       return;
     }
 
@@ -389,6 +400,33 @@ export default function LocalRegister() {
             onChange={onChange}
             required
           />
+          <div
+            style={{
+              marginTop: -8,
+              marginBottom: 12,
+              padding: "8px 10px",
+              borderRadius: 8,
+              border: "1px solid #E5E7EB",
+              background: "#F9FAFB",
+            }}
+          >
+            {passwordRuleStates.map((rule) => (
+              <div
+                key={rule.id}
+                style={{
+                  fontSize: 12,
+                  color: rule.passed ? "#16A34A" : "#9CA3AF",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 4,
+                }}
+              >
+                <span style={{ fontWeight: 700 }}>{rule.passed ? "✔" : "•"}</span>
+                <span>{rule.label}</span>
+              </div>
+            ))}
+          </div>
 
           <Label>이름</Label>
           <Input

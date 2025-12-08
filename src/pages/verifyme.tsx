@@ -219,8 +219,6 @@ export default function VerifyMePage() {
                 color: "#6B7280",
               }}
             >
-              비밀번호가 기억나지 않는다면{" "}
-              <span style={{ color: "#2563EB" }}>비밀번호 재설정</span>을 진행해 주세요.
             </p>
           </form>
         ) : (
@@ -234,9 +232,9 @@ export default function VerifyMePage() {
           >
             소셜 계정으로 가입된 사용자입니다.{" "}
             <span style={{ color: "#2563EB", fontWeight: 600 }}>
-              비밀번호 확인 없이
+              소셜 인증 화면
             </span>{" "}
-            프로필 수정 화면으로 이동 중입니다…
+            으로 이동 중입니다…
           </p>
         )}
       </div>

@@ -1,6 +1,6 @@
 import type { UiNews } from '../types/news';
 import type { ScrapManager } from '../hooks/useScrapManager';
-import { formatDateTime } from '../utils/news';
+import { decodeHtmlEntities, formatDateTime } from '../utils/news';
 import ScrapActionButtons from './ScrapActionButtons';
 import './components.css';
 import DefaultThumbnail from '../pages/Nuzip_logo.png';
@@ -48,9 +48,9 @@ const isAnalysisSuccessful = (newsItem: UiNews) => {
 };
 
 const parseKeywords = (keywordString?: string) =>
-  (keywordString ?? '')
+  decodeHtmlEntities(keywordString)
     .split(',')
-    .map((keyword) => keyword.trim())
+    .map((keyword) => decodeHtmlEntities(keyword).trim())
     .filter(Boolean);
 
 export default function NewsCard({ item, scrapManager }: NewsCardProps) {
@@ -59,13 +59,16 @@ export default function NewsCard({ item, scrapManager }: NewsCardProps) {
   const keywords = parseKeywords(item.keywords);
   const link = (item.originalLink as string) || (item.url as string) || '#';
   const thumbnail = item.imageUrl || DefaultThumbnail;
+  const decodedTitle = decodeHtmlEntities(item.title) || '제목 없음';
+  const decodedSummary = decodeHtmlEntities(item.summary);
+  const hasSummary = decodedSummary.trim().length > 0;
 
   return (
     <div className="news-card">
       <img src={thumbnail} alt={item.title ?? '썸네일'} className="news-thumbnail" loading="lazy" />
       <div className="news-content">
         <a href={link} target="_blank" rel="noopener noreferrer" className="news-title-link">
-          <h2 className="news-title">{item.title || '제목 없음'}</h2>
+          <h2 className="news-title">{decodedTitle}</h2>
         </a>
 
         {keywords.length > 0 && (
@@ -78,7 +81,7 @@ export default function NewsCard({ item, scrapManager }: NewsCardProps) {
           </div>
         )}
 
-        {item.summary && <p className="news-summary">{item.summary}</p>}
+        {hasSummary && <p className="news-summary">{decodedSummary}</p>}
         <div className="news-footer">
           <span className="news-date">{formatDateTime(item.publishedAt)}</span>
           {scrapManager && (

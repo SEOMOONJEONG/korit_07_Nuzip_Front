@@ -2,6 +2,33 @@ import type { UiNews } from '../types/news';
 
 const pad = (value: number) => value.toString().padStart(2, '0');
 
+const BASIC_ENTITY_MAP: Record<string, string> = {
+  '&quot;': '"',
+  '&#34;': '"',
+  '&#39;': "'",
+  '&apos;': "'",
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+};
+
+const fallbackDecodeEntities = (input: string) =>
+  input.replace(/&(quot|#34|#39|apos|amp|lt|gt);/g, (match) => BASIC_ENTITY_MAP[match] ?? match);
+
+let htmlEntityDecoder: HTMLTextAreaElement | null = null;
+
+export const decodeHtmlEntities = (value?: string | null): string => {
+  if (!value) return '';
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return fallbackDecodeEntities(value);
+  }
+  if (!htmlEntityDecoder) {
+    htmlEntityDecoder = document.createElement('textarea');
+  }
+  htmlEntityDecoder.innerHTML = value;
+  return htmlEntityDecoder.value;
+};
+
 export const parsePublishedAt = (value?: UiNews['publishedAt']): Date => {
   if (!value) return new Date(0);
 

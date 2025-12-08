@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getPasswordRuleStates, validatePasswordStrength } from '../utils/password';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -64,6 +65,7 @@ export default function ProfileEditPage() {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwError, setPwError] = useState("");
   const [pwOk, setPwOk] = useState("");
+  const passwordRuleStates = getPasswordRuleStates(newPassword);
 
   const rawToken = sessionStorage.getItem("jwt");
   const reverifyToken = sessionStorage.getItem("reverifyToken") || "";
@@ -136,14 +138,15 @@ export default function ProfileEditPage() {
   };
 
   const toggleCategory = (c: CategoryKey) => {
-    setCategories((prev) => {
-      if (prev.includes(c)) return prev.filter((x) => x !== c);
-      if (prev.length >= 3) {
-        alert("카테고리는 정확히 3개만 선택할 수 있습니다.");
-        return prev;
-      }
-      return [...prev, c];
-    });
+    if (categories.includes(c)) {
+      setCategories((prev) => prev.filter((x) => x !== c));
+      return;
+    }
+    if (categories.length >= 3) {
+      alert("카테고리는 정확히 3개만 선택할 수 있습니다.");
+      return;
+    }
+    setCategories((prev) => [...prev, c]);
   };
 
   const handlePhoneChange = (part: keyof PhoneParts, value: string) => {
@@ -225,6 +228,11 @@ export default function ProfileEditPage() {
     }
     if (newPassword !== confirmNewPassword) {
       setPwError("새 비밀번호와 확인이 일치하지 않습니다.");
+      return;
+    }
+    const strengthError = validatePasswordStrength(newPassword);
+    if (strengthError) {
+      setPwError(strengthError);
       return;
     }
 
@@ -630,9 +638,38 @@ export default function ProfileEditPage() {
               <TextInput
                 type="password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  if (pwError) setPwError("");
+                }}
                 placeholder="새 비밀번호"
               />
+              <div
+                style={{
+                  marginTop: 6,
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #E5E7EB",
+                  background: "#F9FAFB",
+                }}
+              >
+                {passwordRuleStates.map((rule) => (
+                  <div
+                    key={rule.id}
+                    style={{
+                      fontSize: 12,
+                      color: rule.passed ? "#16A34A" : "#9CA3AF",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span style={{ fontWeight: 700 }}>{rule.passed ? "✔" : "•"}</span>
+                    <span>{rule.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
             <div style={{ marginBottom: 12 }}>
               <label
@@ -648,7 +685,10 @@ export default function ProfileEditPage() {
               <TextInput
                 type="password"
                 value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmNewPassword(e.target.value);
+                  if (pwError) setPwError("");
+                }}
                 placeholder="새 비밀번호 확인"
               />
             </div>
